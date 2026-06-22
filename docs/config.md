@@ -150,47 +150,6 @@ A free-text comment for whoever reads the file. Not used by the app. The convent
 
 `"note": "This is the configuration file for rss.chat running on africa."`
 
-## Complete example
+## Example file
 
-A minimal production `config.json` with a placeholder password:
-
-```json
-{
-	"note": "This is the configuration file for rss.chat running on africa.",
-
-	"productName": "rssChat",
-	"productNameForDisplay": "rss.chat",
-	"urlServerHomePageSource": "http://scripting.com/code/testing/rssnetwork/client/index.html",
-
-	"myDomain": "rss.chat",
-	"urlServerForClient": "https://rss.chat/",
-	"urlServerForEmail": "https://rss.chat/",
-
-	"flWebsocketEnabled": true,
-	"websocketPort": 1462,
-	"flSecureWebsocket": true,
-	"urlWebsocketServerForClient": "wss://rss.chat/",
-
-	"prefsPath": "prefs.json",
-	"dataPath": "data/",
-
-	"mailSender": "dave.winer@gmail.com",
-	"confirmEmailSubject": "rss.chat confirmation",
-	"operationToConfirm": "sign in to rss.chat",
-
-	"whitelist": [
-		"dave.winer@gmail.com"
-		],
-
-	"database": {
-		"host": "your-cluster.db.ondigitalocean.com",
-		"port": 25060,
-		"user": "doadmin",
-		"password": "your-db-password",
-		"charset": "utf8mb4",
-		"connectionLimit": 100,
-		"database": "rsschat",
-		"debug": false
-		}
-	}
-```
+A ready-to-edit example config, with invented values and a placeholder password, is in [config.example.json](config.example.json). Copy it to your app folder as `config.json` and replace the values with your own.

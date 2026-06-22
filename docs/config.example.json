@@ -1,0 +1,39 @@
+{
+	"note": "Example configuration for an rss.chat server. Copy this to your app folder as config.json and replace the values with your own.",
+
+	"productName": "rssChat",
+	"productNameForDisplay": "birdsong.chat",
+	"urlServerHomePageSource": "http://scripting.com/code/testing/rssnetwork/client/index.html",
+
+	"myDomain": "birdsong.chat",
+	"urlServerForClient": "https://birdsong.chat/",
+	"urlServerForEmail": "https://birdsong.chat/",
+
+	"flWebsocketEnabled": true,
+	"websocketPort": 1462,
+	"flSecureWebsocket": true,
+	"urlWebsocketServerForClient": "wss://birdsong.chat/",
+
+	"prefsPath": "prefs.json",
+	"dataPath": "data/",
+
+	"mailSender": "admin@birdsong.chat",
+	"confirmEmailSubject": "birdsong.chat confirmation",
+	"operationToConfirm": "sign in to birdsong.chat",
+
+	"whitelist": [
+		"admin@birdsong.chat",
+		"friend@example.com"
+		],
+
+	"database": {
+		"host": "your-cluster.db.ondigitalocean.com",
+		"port": 25060,
+		"user": "doadmin",
+		"password": "your-db-password",
+		"charset": "utf8mb4",
+		"connectionLimit": 100,
+		"database": "birdsong",
+		"debug": false
+		}
+	}
