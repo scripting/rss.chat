@@ -1,0 +1,160 @@
+<html>
+	<head>
+		<title>rss.chat</title>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		
+		<script>
+			const settingsFromServer = { //4/15/26 by DW -- values filled in by server
+				productName: "[%productName%]",
+				productNameForDisplay: "[%productNameForDisplay%]",
+				appServerVersion: "[%version%]",
+				flEnableLogin: "[%flEnableLogin%]",
+				urlServer: "[%urlServerForClient%]",
+				urlSocketServer: "[%urlWebsocketServerForClient%]",
+				flSocketsEnabled: "[%flWebsocketEnabled%]",
+				};
+			</script>
+		
+		<link rel="preload" as="font" type="font/woff2" href="//s3.amazonaws.com/scripting.com/code/fontawesome/webfonts/fa-solid-900.woff2" crossorigin> 
+		
+		<script src="//s3.amazonaws.com/scripting.com/code/includes/jquery-1.9.1.min.js"></script>
+<link href="//s3.amazonaws.com/scripting.com/code/includes/bootstrap.css" rel="stylesheet">
+<script src="//s3.amazonaws.com/scripting.com/code/includes/bootstrap.min.js"></script>
+
+<link rel="stylesheet" href="//s3.amazonaws.com/scripting.com/code/fontawesome/css/all.css">
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700" rel="stylesheet">
+
+<script src="//s3.amazonaws.com/scripting.com/code/includes/basic/code.js?x=2"></script>
+<link href="//s3.amazonaws.com/scripting.com/code/includes/basic/styles.css" rel="stylesheet" type="text/css">
+
+		
+		<script src="//s3.amazonaws.com/scripting.com/code/feedland/home/dev/api.js?x=1"></script>
+		
+		<link rel="stylesheet" href="//s3.amazonaws.com/scripting.com/code/feedland/home/dev/signupdialog.css?x=1"/>
+		<script src="//s3.amazonaws.com/scripting.com/code/feedland/home/dev/signupdialog.js?x=1" /></script>
+		
+		<script src="//s3.amazonaws.com/scripting.com/code/concord/testing/3.0.6/concord.js?x=1"></script>
+		<link rel="stylesheet" href="//s3.amazonaws.com/scripting.com/code/concord/testing/3.0.6/concordstyles.css?x=1"/>
+		<script src="//s3.amazonaws.com/fargo.io/code/shared/outliner.js?x=1"></script>
+		<script src="//s3.amazonaws.com/scripting.com/code/outlinedialog/code.js?x=1"></script>
+		<link rel="stylesheet" href="//s3.amazonaws.com/scripting.com/code/outlinedialog/styles.css?x=1"> 
+		
+		<script src="//s3.amazonaws.com/scripting.com/code/feedland/home/sockets.js?x=1"></script>
+		<script src="//s3.amazonaws.com/scripting.com/code/rsschat/feedlandsocket.js?x=1"></script>
+		
+		<script src="//s3.amazonaws.com/fargo.io/code/markdownConverter.js?x=1"></script>
+		<script src="https://cdn.jsdelivr.net/npm/turndown@7.1.1/dist/turndown.js?x=1"></script>
+		
+		
+		<script src="https://code.scripting.com/rsschat/globals.js?x=1"></script>
+		<script src="//s3.amazonaws.com/scripting.com/code/rsschat/misc.js?x=1"></script>
+		<script src="https://code.scripting.com/rsschat/api.js?x=1"></script>
+		<link href="https://code.scripting.com/rsschat/styles.css?x=1" rel="stylesheet">
+		<script src="https://code.scripting.com/rsschat/code.js?x=1"></script>
+		
+		</head>
+	<body>
+		<div class="divPrefsDialog">
+			<div id="idPrefsDialog" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="windowTitleLabel" aria-hidden="true">
+				<div class="modal-body">
+					<div class="divDialogElements">
+						<form method="POST">
+	<div class="divTabsFromOutline">
+	<div class="tabbable">
+		<ul class="nav nav-tabs" data-tabs="tabs">
+			<li class="active" ><a href="#idFeed266"  data-toggle="tab">Feed</a></li>
+			<li><a href="#idPrompts266"  data-toggle="tab">Prompts</a></li>
+			<li><a href="#idCss266"  data-toggle="tab">CSS</a></li>
+			</ul>
+		<div id="my-tab-content" class="tab-content">
+			<div class="active tab-pane" id="idFeed266">
+				<fieldset>
+					<div class="divPrefs">	<p>You can set the title, link and description for the feed that we maintain for you.</p><div class="clearfix">	<label for="myFeedTitle">TItle:</label>	<div class="input">		<input class="xlarge prefsInput" id="myFeedTitle" name="myFeedTitle" size="50" type="text" value="" placeholder="Your feed's title." />		</div>	</div><div class="clearfix">	<label for="myFeedLink">Link:</label>	<div class="input">		<input class="xlarge prefsInput" id="myFeedLink" name="myFeedLink" size="50" type="text" value="" placeholder="Link to your home page or profile site." />		</div>	</div><div class="clearfix">	<label for="myFeedDescription">Description:</label>	<div class="input">		<textarea class="xxlarge" id="myFeedDescription" name="myFeedDescription" cols="70" rows="3"placeholder="A short description of your feed." ></textarea>		</div>	</div><div class="clearfix">	<label for="myAvatarImageUrl">Avatar URL:</label>	<div class="input">		<input class="xlarge prefsInput" id="myAvatarImageUrl" name="myAvatarImageUrl" size="50" type="text" value="" placeholder="A square image that represents you on the net." />		</div>	</div>	</div>
+					</fieldset>
+						</div>
+					<div class="tab-pane" id="idPrompts266">
+						<fieldset>
+							<div class="divPrefs">	<div class="clearfix">	<label for="placeholderSignedIn">New post:</label>	<div class="input">		<input class="xlarge prefsInput" id="placeholderSignedIn" name="placeholderSignedIn" size="50" type="text" value="" placeholder="What's happening?" />		</div>	</div><div class="clearfix">	<label for="placeholderReply">Reply:</label>	<div class="input">		<input class="xlarge prefsInput" id="placeholderReply" name="placeholderReply" size="50" type="text" value="" placeholder="Post your reply" />		</div>	</div>	</div>
+							</fieldset>
+								</div>
+							<div class="tab-pane" id="idCss266">
+								<fieldset>
+									<div class="divPrefs">	<div class="clearfix">	<label for="flApplyUserCss"></label>	<div class="input">		<input type="checkbox" name="flApplyUserCss" value=xxx>&nbsp;Apply this CSS code at startup.		</div>	</div><div class="clearfix">	<label for="userCss">CSS:</label>	<div class="input">		<textarea class="xxlarge" id="userCss" name="userCss" cols="70" rows="10"placeholder="These styles will be inserted when the app starts up, if the checkbox above is checked. If you want to start over, delete all the text and save." ></textarea>		</div>	</div>	</div>
+									</fieldset>
+										</div>
+									</div>
+								</div>
+							</div>
+
+	</form>
+
+						</div>
+					</div>
+				<div class="modal-footer">
+					<a href="#" class="btn" onclick="prefsCloseDialog ();">Cancel</a>
+					<a href="#" class="btn btn-primary" onclick="prefsOkClicked ();">OK</a>
+					</div>
+				</div>
+			</div>
+		<div class="divMenubar">
+			<div class="topbar-wrapper" style="z-index: 5;">
+				<div class="navbar navbar-fixed-top" data-dropdown="dropdown">
+					<div class="divThemeVersion"></div>
+					<div class="navbar-inner">
+						<div class="container">
+							<a class="brand" href="/" title="A simple chat network based on RSS 2.0 feeds and websockets.">
+								<span class="divMenuProductName">rss.chat</span>
+								</a>
+							<ul class="nav">
+								<li class="dropdown" id="idMainMenu"> 
+									<a href="#" class="dropdown-toggle" data-toggle="dropdown">Menu&nbsp;<b class="caret"></b></a>
+									<ul class="dropdown-menu">
+										<li><a onclick="newPostCommand ();">New post...</a></li>
+										<li class="divider"></li>
+										<li><a onclick="showEditorCommand ();" id="idShowEditor">Focus on editor</a></li>
+										<li class="divider"></li>
+										<li><a onclick="viewMyFeedCommand ()" id="idViewMyFeed">View my feed...</a></li>
+										<li><a onclick="viewEveryonesFeedCommand ()" id="idViewEveryonesFeed">View everyone's feed...</a></li>
+										<li><a onclick="viewUserlistCommand ()">View OPML user list...</a></li>
+										
+										<li class="divider"></li>
+										<li><a onclick="supportCommand ()">Support/Docs...</a></li>
+										</ul>
+									</li>
+								</ul>
+							<ul class="nav pull-right">
+								<li class="dropdown">
+									<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+										<i class="fa fa-user" style="color: cornflowerblue;"></i>
+										<span id="idUsername"></span>
+										</a>
+									<ul class="dropdown-menu">
+										<li><a onclick="myAboutDialog ();">About [%productNameForDisplay%]...</a></li>
+										<li class="divider"></li>
+										<li><a onclick="settingsCommand ();">Settings...</a></li>
+										<li class="divider"></li>
+										<li><a onclick="createAccountCommand ()" id="idCreateAccount">Create account...</a></li>
+										<li><a onclick="signInCommand ()" id="idSignIn">Sign In...</a></li>
+										<li><a onclick="signOutCommand ()" id="idSignOut">Sign out...</a></li>
+										
+										
+										
+										</ul>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		<div class="divChatContainer">
+			</div>
+		<script>
+			$(document).ready (function () {
+				startup ();
+				});
+			</script>
+		</body>
+	</html>

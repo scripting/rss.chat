@@ -1,0 +1,9 @@
+{
+	"name": "threadwalker",
+	"version": "0.1.0",
+	"description": "Walk a whole rss.chat conversation from the feeds alone.",
+	"main": "walker.js",
+	"dependencies": {
+		"xml2js": "*"
+		}
+	}
