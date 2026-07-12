@@ -1,4 +1,4 @@
-var myVersion = "0.5.23", myProductName = "rss.network";
+var myVersion = "0.5.24", myProductName = "rss.network";
 
 const daveappserver = require ("daveappserver");
 const rss = require ("daverss");
@@ -685,19 +685,25 @@ var config = {
 							}
 						});
 					
-					const headElements = getDefaultHeadElements ();
-					var parentName = "post " + idPost;
-					if (parentItem.title !== undefined) {
-						parentName = "\"" + parentItem.title + "\"";
+					if (parentItem === undefined) { //7/12/26 by CC
+						const message = "Can't build the comments feed for post " + idPost + " because the post has been deleted.";
+						callback ({message});
 						}
-					headElements.title = "Comments on " + parentName;
-					headElements.link = parentItem.guid;
-					headElements.description = "Replies to " + parentName + " by " + parentItem.screenname + " on " + config.myDomain;
-					headElements.urlSelf = getCommentsFeedUrl (parentItem.screenname, idPost);
-					
-					const feedItems = buildFeedItems (replies, true); //7/8/26 by DW -- include <source> attributions
-					const xmltext = rss.buildRssFeed (headElements, feedItems);
-					callback (undefined, xmltext, parentItem);
+					else {
+						const headElements = getDefaultHeadElements ();
+						var parentName = "post " + idPost;
+						if (parentItem.title !== undefined) {
+							parentName = "\"" + parentItem.title + "\"";
+							}
+						headElements.title = "Comments on " + parentName;
+						headElements.link = parentItem.guid;
+						headElements.description = "Replies to " + parentName + " by " + parentItem.screenname + " on " + config.myDomain;
+						headElements.urlSelf = getCommentsFeedUrl (parentItem.screenname, idPost);
+						
+						const feedItems = buildFeedItems (replies, true); //7/8/26 by DW -- include <source> attributions
+						const xmltext = rss.buildRssFeed (headElements, feedItems);
+						callback (undefined, xmltext, parentItem);
+						}
 					}
 				}
 			});

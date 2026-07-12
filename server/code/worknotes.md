@@ -1,3 +1,9 @@
+#### 7/12/26; 11:50 AM ET by CC
+
+**A deleted post can't crash its own comments feed anymore.** There was a sequence that could bring down a feed rebuild: someone replies to a post, the author deletes the post, then the reply gets edited. Rebuilding the comments feed found the parent gone — deleted posts are filtered out of every query — and crashed trying to read it. Now the build answers the way this server always answers: "Can't build the comments feed for post N because the post has been deleted."
+
+Also: this file moved from server/docs to server/code. Worknotes live with the code, because you need the worknotes to read the code.
+
 #### 7/11/26; 7:45 PM ET by CC
 
 **Sign-up and sign-in emails were going to spam. Fixed — no code change.** The cause: `mailSender` was a gmail.com address, but the mail actually goes out through Amazon SES, and Gmail sends mail to spam when the sending server isn't authorized to send for the address's domain — as policy, since 2024. The fix, useful to anyone deploying this server: verify your domain as an identity in the SES console (it hands you three DKIM CNAME records to add to your DNS), then set `mailSender` in config.json to an address on that domain. It doesn't need a real mailbox behind it — rss.chat now sends as hello@rss.chat. Verification took minutes, and the first email after the change landed in the inbox.
