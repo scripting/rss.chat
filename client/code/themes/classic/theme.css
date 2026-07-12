@@ -35,8 +35,8 @@
 				display: flex;
 				flex-direction: column;
 				position: sticky;
-				top: 65px; /* 6/10/26 by Claude -- #57: pin below the fixed top menu bar (65px) so the topmost icon (the +) doesn't tuck under it on scroll */
-				height: calc(100vh - 65px);
+				top: 90px; /* 6/10/26 by Claude -- #57: pin below the fixed top menu bar so the topmost icon (the +) doesn't tuck under it on scroll. 7/11/26 by CC -- 90 = the 65px menu bar plus the 25px gap above the chat container: the exact height the panel sits at when the page is at the top, so scrolling never shifts the icons under the mouse (a Home click that scrolled the page was landing the mouse on New post) */
+				height: calc(100vh - 90px);
 				overflow-y: auto;
 				}
 			.divChat .divIconsContainer {

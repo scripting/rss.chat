@@ -1,7 +1,7 @@
 function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic theme (3-col), renamed from twitter 7/2/26
 			console.log ("chatUserInterface (classic)");
 
-			const themesVersion = "0.5.317"; //bump on every theme edit -- an open wedge counts as not-home: Home lights up and puts every open nest away, 7/10/26 by CC
+			const themesVersion = "0.5.320"; //bump on every theme edit -- the second Home click puts the cursor on the topmost post, 7/11/26 by CC
 
 			var options = {
 				whereToAppend: undefined,
@@ -2811,7 +2811,7 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 				window.scrollTo (0, savedTimelineScroll);
 				scheduleRenderMap (); //7/9/26 by CC -- back on the timeline; nothing re-renders, so nudge the map by hand
 				};
-			function viewHome () { //6/29/26 by CC -- #99/#118: Home is all the way back to the top of the main timeline, not a Back button -- clear any hoist, drop the story/profile/scanner overlays, show the timeline, go to the top. 7/4/26 by CC -- #136: now also called internally after publishing, so it's a named function exposed below
+			function viewHome () { //6/29/26 by CC -- #99/#118: Home is all the way back to the top of the main timeline, not a Back button -- clear any hoist, drop the story/profile/scanner overlays, show the timeline, go to the top. 7/4/26 by CC -- #136: now also called internally after publishing, so it's a named function exposed below. 7/11/26 by CC -- the Home icon now comes in through goHome below; this stays the reset-to-top that publishing uses
 				if (!flTimelineLoaded) { //6/29/26 by CC -- #118: cold-loaded straight into a story -- the timeline was never filled; fill it now
 					loadRecentItems ();
 					}
@@ -2834,10 +2834,12 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 				divScanner.empty ();
 				divTimeline.show ();
 				window.scrollTo (0, 0);
+				const divFirstThread = divTimeline.children (".divThread").first (); //7/11/26 by CC -- Home means the top: the cursor lands on the topmost post, not wherever it was before the trip home
+				if (divFirstThread.length > 0) {
+					selectThread (divFirstThread);
+					}
 				scheduleRenderMap (); //7/9/26 by CC -- same nudge as viewTimeline
 				}
-			this.viewHome = viewHome;
-
 			function canSurface () { //7/10/26 by CC -- Surface: enabled anywhere but the flat timeline -- a story, profile, or flipped/hoisted view has an up to come back from
 				return (divChat.hasClass ("storyPage") || divChat.hasClass ("profilePage") || divChat.hasClass ("scannerPage"));
 				}
@@ -2881,6 +2883,39 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 				return (canSurface () || (window.scrollY > 0) || (divTimeline.find (".divReplies .divThread").length > 0));
 				}
 			this.canHome = canHome;
+
+			function goHome () { //7/11/26 by CC -- Home is two-stage now, the Surface lifeline folded in (prior art: the Home tab in the Twitter and Instagram apps). Buried in a story, profile, flip or open conversation, the first click comes back to the flat timeline with the cursor still on the post you were reading; from the flat timeline it goes to the top and resets, what Home always did
+				if (canSurface ()) { //buried in a story, profile or flipped view -- come up, keep your place
+					surface ();
+					}
+				else {
+					if (divTimeline.find (".divReplies .divThread").length > 0) { //open conversations in the timeline -- put the nests away, keep your place
+						const theItem = getItemForThread (divSelectedThread); //capture before the nests empty
+						divTimeline.children (".divThread").each (function () {
+							const wedgeUI = $(this).data ("wedgeUI");
+							if (wedgeUI !== undefined) {
+								wedgeUI.closeReplies ();
+								}
+							});
+						var entry;
+						if (theItem !== undefined) {
+							entry = itemsById [theItem.id];
+							}
+						if (entry !== undefined) {
+							selectThread (entry.divThread, true); //the post's own timeline row, back on screen if a nest had folded it
+							}
+						else {
+							if (divSelectedThread !== undefined) {
+								selectThread (divSelectedThread, true); //closeReplies moved the cursor up to the parent post -- scroll it into view
+								}
+							}
+						}
+					else { //the flat timeline -- go to the top and reset
+						viewHome ();
+						}
+					}
+				}
+			this.viewHome = goHome; //the Home icon's click arrives through the shell's viewHome call; the two-stage behavior lives behind the same name
 
 			function getStructureRoots () { //7/4/26 by CC -- #140: the posts that sit at top level in the structure view -- true top-level posts, plus replies whose parent isn't among the loaded posts (nowhere to nest, so they stand alone honestly)
 				const theRoots = new Array ();

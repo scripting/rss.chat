@@ -1,5 +1,5 @@
 const appConsts = {
-	version: "0.6.4", //7/2/26 by DW
+	version: "0.6.5", //7/11/26 by DW
 	
 	productName: settingsFromServer.productName,
 	productNameForDisplay: settingsFromServer.productNameForDisplay,
@@ -86,17 +86,6 @@ const leftColumnIcons = [ //5/20/26 by DW
 		enabled: true, 
 		click: function () {
 			globals.myChatUserInterface.editNewItem (); //5/20/26 by DW
-			}
-		},
-	{ //surface
-		name: "surface",
-		title: "Surface",
-		icon: "<i class=\"fas fa-level-up-alt\"></i>",
-		tooltip: "Pop out to the timeline with cursor preserved.",
-		enabled: true, 
-		click: function () {
-			console.log ("surface");
-			globals.myChatUserInterface.surface (); //7/10/26 by DW
 			}
 		},
 	{ //feed icon
