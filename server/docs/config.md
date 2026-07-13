@@ -65,6 +65,36 @@ The MySQL connection. `database` is the schema name you created at install time 
 
 Never commit a real password. Keep `config.json` out of any public repo.
 
+## Feeds on S3
+
+The server publishes its RSS feeds and its subscription list as static files on Amazon S3. These four settings say where. Each pair is a location: the S3 path the server writes to, and the public URL readers fetch from -- they must point at the same place.
+
+**Every server must have its own locations.** If you leave these out, the built-in defaults point at rss.chat's own folders, and your server will overwrite rss.chat's feeds. This is not hypothetical -- it's exactly what happened the first time we set up a second server.
+
+### rssS3Path
+
+The S3 folder the server writes user feeds into. Each user gets a subfolder named for their screenname.
+
+`"rssS3Path": "/myBucket/myserver.chat/users/"`
+
+### rssFeedUrl
+
+The public base URL of that same folder -- feed addresses are built from it, e.g. `https://users.myserver.chat/dave/rss.xml`.
+
+`"rssFeedUrl": "https://users.myserver.chat/"`
+
+### opmlS3Path
+
+The S3 address the server writes its subscription list to -- an OPML file listing every user's feed.
+
+`"opmlS3Path": "/myBucket/myserver.chat/data/subs.opml"`
+
+### opmlListUrl
+
+The public URL of that subscription list.
+
+`"opmlListUrl": "https://data.myserver.chat/subs.opml"`
+
 ## Email sign-in
 
 Sign-in is a magic link: the user enters an email, the server mails a confirmation link. These three fields shape that email.

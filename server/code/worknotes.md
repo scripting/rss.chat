@@ -1,3 +1,13 @@
+#### 7/13/26; 7:20 PM ET by CC
+
+**There's a second server now — demo.rss.chat — and standing it up taught the docs some things.** Dave installed it on a different machine, following [install.md](../docs/install.md) for real, start to finish. It's open — no whitelist, anyone can join. Two lessons from the exercise, both now in the docs:
+
+First, every server needs its own S3 locations for feeds. The install initially inherited the defaults, which point at rss.chat's own folders — so the new server was overwriting the original's feeds. config.md now has a [Feeds on S3](../docs/config.md#feeds-on-s3) section covering the four settings, and they're in the example config.json so they're on every installer's list.
+
+Second, websockets need a route in your reverse proxy. Live updates run over a websocket on their own port (`websocketPort`), and the proxy in front of the server has to send upgrade requests there — with Caddy, that's a matcher on your domain plus the Connection/Upgrade headers, proxying to that port. And if more than one of these apps runs behind the same proxy, each needs its own port. Until the route existed, the site worked fine and only live updates were missing — if new posts don't appear without a reload, this is the first place to look.
+
+Also new today: server v0.5.26 adds `blockedUsersList` to config.json — an array of email addresses that can't sign up, sign in, or post. It's checked fresh from the file on every use, so adding an address takes effect immediately, no restart. Case doesn't matter.
+
 #### 7/13/26; 9:30 AM ET by CC
 
 **Server v0.5.25. Bare URLs become links, automatically, when a post saves.** Type or paste a web address into a post and it's clickable when it publishes — no more selecting the text and reaching for the link button. The idea came from a user, [Don Park](https://rss.chat/?id=248), the day before it shipped.
