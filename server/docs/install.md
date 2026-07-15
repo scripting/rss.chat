@@ -95,9 +95,29 @@ create table files (
 
 **likes** -- one row per (user, item) like. The primary key `(screenname, itemId)` makes a like idempotent (you can't like the same item twice) and the toggle a single insert or delete. There is no copy of the like data on the item row -- the item-read queries compute `ctLikes` (a count) and `flLiked` (does the current viewer have a row) on the fly, which is what the `itemId` index is for. Unlike FeedLand, which keeps a denormalized list of likers stamped on each item, this is the single source of truth.
 
+**files** -- the feeds and the subscription list, when `flFeedsInDatabase` is on. One row per file: `path` is the request path the file is served at (`/users/dave/rss.xml`), `filecontents` is the file, `type` is its content type, and `ctSaves` counts how many times it's been rebuilt. Paths are stored lowercase, so feed URLs are case-insensitive. If you serve feeds from S3 instead, this table simply stays empty.
+
 ### Upgrading an existing database
 
-The block above is for a fresh install. If you already have a running server from an earlier version, add the `likes` table on its own:
+The block above is for a fresh install. If you already have a running server from an earlier version, add the new tables on their own.
+
+The `files` table, for serving feeds from the database:
+
+```sql
+create table files (
+	path varchar (512) not null,
+	type varchar (64),
+	filecontents longtext,
+	whenCreated datetime default current_timestamp,
+	whenUpdated datetime default current_timestamp on update current_timestamp,
+	ctSaves int unsigned not null default 1,
+	primary key (path)
+	) character set utf8mb4 collate utf8mb4_unicode_ci;
+```
+
+Then add `"flFeedsInDatabase": true` to your config.json, remove the four feed-location settings (`rssS3Path`, `rssFeedUrl`, `opmlS3Path`, `opmlListUrl`), and restart. The server rebuilds every feed into the database at startup, so the files are all there before the first request. Anyone subscribed to your feeds at the old S3 addresses will need a redirect from the old location to the new one -- a single permanent-redirect rule on the old feed domain, pointing each path at the same path on your server, moves every subscriber over.
+
+The `likes` table:
 
 ```sql
 create table likes (
@@ -117,7 +137,7 @@ alter table users add column ctHits int not null default 0, add column ctHitsTod
 
 ## An AI can do this install
 
-These instructions work for people, and they work for AIs. If you use Claude Code or a similar agent, give it shell access on the machine that will run the server, point it at this document, and tell it to do the install. It can set up Node and MySQL, create the database from the schema above, fill in config.json, and start the server -- checking with you only on the questions that are genuinely yours to answer: your domain name, your database name, your AWS credentials.
+These instructions work for people, and they work for AIs. If you use Claude Code or a similar agent, give it shell access on the machine that will run the server, point it at this document, and tell it to do the install. It can set up Node and MySQL, create the database from the schema above, fill in config.json, and start the server -- checking with you only on the questions that are genuinely yours to answer: your domain name and your database name.
 
 The instructions above read the same either way. Follow them yourself, or read along while your AI does.
 

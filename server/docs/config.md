@@ -51,11 +51,17 @@ The MySQL connection. `database` is the schema name you created at install time 
 
 Never commit a real password. Keep `config.json` out of any public repo.
 
-### Feeds on S3
+### Where feeds live
 
-The server publishes its RSS feeds and its subscription list as static files on Amazon S3. These four settings say where. Each pair is a location: the S3 path the server writes to, and the public URL readers fetch from -- they must point at the same place.
+The server publishes an RSS feed for every user, plus a subscription list of all its feeds. One setting says where they go.
 
-**Every server must have its own locations.** There are no built-in defaults -- as of server v0.5.27, the server starts with these four values undefined, and your config.json supplies them. (Earlier versions defaulted to rss.chat's own folders, which caused exactly the confusion you'd expect the first time we set up a second server.)
+#### flFeedsInDatabase
+
+When true, the server stores the feeds and the subscription list in its database and serves them itself, from your own domain -- a user's feed is at `https://myserver.chat/users/dave/rss.xml`, the subscription list at `https://myserver.chat/data/subs.opml`. This is what the example config uses, and the right choice for a new server: there's nothing else to set up. The four settings below aren't needed and should be left out.
+
+`"flFeedsInDatabase": true`
+
+The built-in default is false, which means the alternative: publishing the feeds as static files on Amazon S3. If you go that way, these four settings say where. Each pair is a location: the S3 path the server writes to, and the public URL readers fetch from -- they must point at the same place. Every server must have its own locations; there are no built-in defaults.
 
 #### rssS3Path
 
