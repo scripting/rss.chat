@@ -4,6 +4,7 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="alternate" type="application/rss+xml" href="[%feedUrlEveryone%]">
 		
 		<script>
 			const settingsFromServer = { //4/15/26 by DW -- values filled in by server
@@ -14,6 +15,7 @@
 				urlServer: "[%urlServerForClient%]",
 				urlSocketServer: "[%urlWebsocketServerForClient%]",
 				flSocketsEnabled: "[%flWebsocketEnabled%]",
+				feedUrlEveryone: "[%feedUrlEveryone%]",
 				};
 			</script>
 		
@@ -58,16 +60,14 @@
 			<meta property="og:url" content="[%urlServerForClient%]" />
 			<meta property="og:type" content="website" />
 			<meta property="og:title" content="[%productNameForDisplay%]" />
-			<meta property="og:description" content="Apologies for the cheesy AI-drawn image. I needed this quickly. Still diggin! :-)" />
-			<meta property="og:image" content="https://imgs.scripting.com/2026/07/16/rssChatForOG.png" />
+			<meta property="og:description" content="We are bootstrapping a network of twitter-like systems built out of components of the web and nothing more. Every part replaceable." />
 			<meta property="og:site_name" content="[%productNameForDisplay%]" />
 		<!-- Twitter metadata -->
 			<meta name="twitter:card" content="summary_large_image">
 			<meta name="twitter:site" content="@davewiner">
 			<meta name="twitter:title" content="[%productNameForDisplay%]">
 			<meta name="twitter:url" content="[%urlServerForClient%]">
-			<meta name="twitter:description" content="Apologies for the cheesy AI-drawn image. I needed this quickly. Still diggin! :-)">
-			<meta name="twitter:image:src" content="https://imgs.scripting.com/2026/07/16/rssChatForOG.png">
+			<meta name="twitter:description" content="We are bootstrapping a network of twitter-like systems built out of components of the web and nothing more. Every part replaceable.">
 		
 		</head>
 	<body>
@@ -79,22 +79,22 @@
 	<div class="divTabsFromOutline">
 	<div class="tabbable">
 		<ul class="nav nav-tabs" data-tabs="tabs">
-			<li class="active" ><a href="#idFeed468"  data-toggle="tab">Feed</a></li>
-			<li><a href="#idPrompts468"  data-toggle="tab">Prompts</a></li>
-			<li><a href="#idCss468"  data-toggle="tab">CSS</a></li>
+			<li class="active" ><a href="#idFeed773"  data-toggle="tab">Feed</a></li>
+			<li><a href="#idPrompts773"  data-toggle="tab">Prompts</a></li>
+			<li><a href="#idCss773"  data-toggle="tab">CSS</a></li>
 			</ul>
 		<div id="my-tab-content" class="tab-content">
-			<div class="active tab-pane" id="idFeed468">
+			<div class="active tab-pane" id="idFeed773">
 				<fieldset>
 					<div class="divPrefs">	<p>You can set the title, link and description for the feed that we maintain for you.</p><div class="clearfix">	<label for="myFeedTitle">TItle:</label>	<div class="input">		<input class="xlarge prefsInput" id="myFeedTitle" name="myFeedTitle" size="50" type="text" value="" placeholder="Your feed's title." />		</div>	</div><div class="clearfix">	<label for="myFeedLink">Link:</label>	<div class="input">		<input class="xlarge prefsInput" id="myFeedLink" name="myFeedLink" size="50" type="text" value="" placeholder="Link to your home page or profile site." />		</div>	</div><div class="clearfix">	<label for="myFeedDescription">Description:</label>	<div class="input">		<textarea class="xxlarge" id="myFeedDescription" name="myFeedDescription" cols="70" rows="3"placeholder="A short description of your feed." ></textarea>		</div>	</div><div class="clearfix">	<label for="myAvatarImageUrl">Avatar URL:</label>	<div class="input">		<input class="xlarge prefsInput" id="myAvatarImageUrl" name="myAvatarImageUrl" size="50" type="text" value="" placeholder="A square image that represents you on the net." />		</div>	</div>	</div>
 					</fieldset>
 						</div>
-					<div class="tab-pane" id="idPrompts468">
+					<div class="tab-pane" id="idPrompts773">
 						<fieldset>
 							<div class="divPrefs">	<div class="clearfix">	<label for="placeholderSignedIn">New post:</label>	<div class="input">		<input class="xlarge prefsInput" id="placeholderSignedIn" name="placeholderSignedIn" size="50" type="text" value="" placeholder="What's happening?" />		</div>	</div><div class="clearfix">	<label for="placeholderReply">Reply:</label>	<div class="input">		<input class="xlarge prefsInput" id="placeholderReply" name="placeholderReply" size="50" type="text" value="" placeholder="Post your reply" />		</div>	</div>	</div>
 							</fieldset>
 								</div>
-							<div class="tab-pane" id="idCss468">
+							<div class="tab-pane" id="idCss773">
 								<fieldset>
 									<div class="divPrefs">	<div class="clearfix">	<label for="flApplyUserCss"></label>	<div class="input">		<input type="checkbox" name="flApplyUserCss" value=xxx>&nbsp;Apply this CSS code at startup.		</div>	</div><div class="clearfix">	<label for="userCss">CSS:</label>	<div class="input">		<textarea class="xxlarge" id="userCss" name="userCss" cols="70" rows="10"placeholder="These styles will be inserted when the app starts up, if the checkbox above is checked. If you want to start over, delete all the text and save." ></textarea>		</div>	</div>	</div>
 									</fieldset>

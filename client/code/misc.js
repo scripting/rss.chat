@@ -346,3 +346,7 @@ function fixPrefs () { //7/2/26 by DW
 function firstCharUpper (s) { //7/7/26 by CC
 	return (s.charAt (0).toUpperCase () + s.slice (1));
 	}
+function getGoodbyDialogMessage () { //7/17/26 by DW
+	const theMessage = appConsts.productNameForDisplay + " is running in another tab. Click OK to reload this tab, or you can safely close it without losing any work.";
+	return (theMessage)
+	}

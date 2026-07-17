@@ -165,6 +165,14 @@ function rssNetworkServer (userOptions) {
 	function userIsSignedIn () {
 		return ((rssNetworkMemory.email !== undefined) && (rssNetworkMemory.code !== undefined));
 		}
+	function getSocketGreeting () { //7/17/26 by CC 
+		if (userIsSignedIn ()) {
+			return ("user " + rssNetworkMemory.email + " " + rssNetworkMemory.code);
+			}
+		else {
+			return (undefined);
+			}
+		}
 	function getScreenname () {
 		return (rssNetworkMemory.screenname);
 		}
@@ -290,6 +298,7 @@ function rssNetworkServer (userOptions) {
 	this.getItemAndReplies = getItemAndReplies; //6/30/26 by DW
 	
 	this.getMostActiveToday = getMostActiveToday; //7/1/26 by DW
+	this.getSocketGreeting = getSocketGreeting; //7/17/26 by CC
 	
 	this.signOut = signOut;
 	this.start = start; //4/22/26 by DW

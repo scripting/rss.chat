@@ -1,4 +1,4 @@
-var myVersion = "0.5.29", myProductName = "rss.network";
+var myVersion = "0.5.31", myProductName = "rss.network";
 
 const daveappserver = require ("daveappserver");
 const rss = require ("daverss");
@@ -708,10 +708,6 @@ var config = {
 				link: theItem.link,
 				guid: {flPermalink: true, value: theItem.guid},
 				markdowntext: theItem.markdowntext,
-				account: { //6/26/26 by DW
-					service: config.myDomain,
-					name: theItem.screenname
-					}
 				};
 			if (theItem.enclosureUrl !== undefined) {
 				feedItem.enclosure = {
@@ -767,6 +763,11 @@ var config = {
 				description: headElements.description
 				};
 			}
+		
+		headElements.account = { //7/17/26 by CC -- channel-level source:account, where the spec says it goes
+			service: config.myDomain,
+			name: userRec.screenname
+			};
 		
 		getRecentUserItems (userRec.screenname, feedUrl, config.maxFeedItems, function (err, items) {
 			if (err) {
@@ -1685,11 +1686,11 @@ function handleHttpRequest (theRequest) {
 		
 	
 	switch (theRequest.lowerpath) {
-		case "/robots.txt": //7/1/26 by DW
-			if (config.robotsText.length > 0) {
-				returnText (config.robotsText);
-				return (true);
-				}
+		case "/": //7/17/26 by DW
+			theRequest.addToPagetable = {
+				feedUrlEveryone: config.rssFeedUrl + config.rssFilename
+				};
+			return (false); //don't consume, pass it through daveappserver
 		case "/feed":
 			getUserFeed (params.screenname, httpReturn);
 			return (true);
@@ -1753,6 +1754,11 @@ function handleHttpRequest (theRequest) {
 		case "/getmostactivetoday": //7/1/26 by DW
 			getMostActiveToday (httpReturn);
 			return (true);
+		case "/robots.txt": //7/1/26 by DW
+			if (config.robotsText.length > 0) {
+				returnText (config.robotsText);
+				return (true);
+				}
 		case "/getiteminfo": //7/9/26 by CC
 			getItemInfo (params.screenname, params.guid, params.id, params.format, httpReturn);
 			return (true);
@@ -1761,21 +1767,24 @@ function handleHttpRequest (theRequest) {
 		case "/favicon.ico": //7/14/26 by DW
 			returnRedirect (config.urlFavicon);
 			return (true);
+		
+		default: //7/17/26 by DW
+			if (config.flFeedsInDatabase) { //7/15/26 by CC
+				if (utils.beginsWith (theRequest.lowerpath, "/users/") || utils.beginsWith (theRequest.lowerpath, "/data/")) {
+					readDatabaseFile (theRequest.lowerpath, function (err, fileRec) {
+						if (err) {
+							theRequest.httpReturn (404, "text/plain", err.message);
+							}
+						else {
+							theRequest.httpReturn (200, fileRec.type, fileRec.filecontents);
+							}
+						});
+					return (true);
+					}
+				}
+			return (false);
 		}
 	
-	if (config.flFeedsInDatabase) { //7/15/26 by CC -- serve from database
-		if (utils.beginsWith (theRequest.lowerpath, "/users/") || utils.beginsWith (theRequest.lowerpath, "/data/")) {
-			readDatabaseFile (theRequest.lowerpath, function (err, fileRec) {
-				if (err) {
-					theRequest.httpReturn (404, "text/plain", err.message);
-					}
-				else {
-					theRequest.httpReturn (200, fileRec.type, fileRec.filecontents);
-					}
-				});
-			return (true);
-			}
-		}
 	
 	return (false); // not consumed
 	}

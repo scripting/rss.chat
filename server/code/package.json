@@ -2,7 +2,7 @@
 	"name": "rssnetwork",
 	"description": "A simple chat network based on RSS 2.0 feeds and websockets.",
 	"author": "Dave Winer <dave@scripting.com>",
-	"version": "0.5.29",
+	"version": "0.5.31",
 	"main": "rssnetwork.js",
 	"files": [
 		"worknotes.md",

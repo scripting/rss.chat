@@ -1,3 +1,7 @@
+#### 7/17/26; 12:15 PM ET by CC
+
+**Only one copy of the app runs at a time now — the goodnight kiss.** If you're signed in and open the app in a second tab, or another browser, or another machine, the older copy puts up a friendly dialog: the app is running in another tab, click OK to reload this one, or close it, no work lost. This fixes a bug that bit quietly and repeatedly: a change you made in one place — say, the URL of your icon in settings — could be silently wiped when an older copy, still running with the old settings, saved over it. Now a stale copy stands down the moment a fresh one signs on, so your latest settings always win. When the app connects, it identifies you to the server, and the server sends a "goodnight" message to every other connection you have open — the name comes from that message. (Client v0.6.7.)
+
 #### 7/16/26; 6:00 PM ET by CC
 
 **A person's name now takes you to their posts.** Clicking a name anywhere in the timeline used to open that person's website in a new tab — surprising when what you wanted was to see what they've been posting. Now the name does what the avatar does: it shows their timeline, right in the app. Their website isn't lost — it's linked from their profile page. This came out of real use: Dave clicked a name expecting the person's posts and landed on their homepage instead. (Theme v0.5.330.)

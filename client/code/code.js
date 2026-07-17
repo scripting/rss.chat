@@ -374,6 +374,157 @@
 		}
 	
 	
+//socket --7/17/26 by DW
+	function feedlandSocket (userOptions) {
+		console.log ("feedlandSocket");
+		
+		const options = {
+			flWebsocketEnabled: true,
+			urlFeedlandSocket: undefined,
+			
+			maxRetries: 100, //when we lose a connection, we try to reconnect this many times
+			ctSecsBetwRetries: 10,
+			initialCheckTimeout: 100,
+			
+			flLogNewItem: false,
+			flLogUpdatedItem: false,
+			
+			newItemCallback: function (theFeed, theItem) {
+				},
+			updatedItemCallback: function (theFeed, theItem) {
+				},
+			
+			getSocketGreeting: function () { //7/16/26 by CC -- returns "user email code" when signed in, undefined when not
+				return (undefined);
+				},
+			goodnightDialogMsg: "The app is running in another tab or browser. Click OK to reload this one, or you can safely close it.", //7/16/26 by CC
+			
+			maxSecsBetwNotifications: 10.1, //7/4/26 by DW -- a notice on the same id less than x secs apart are considered to be the same one
+			};
+		mergeOptions (userOptions, options);
+		
+		var ctNewItems = 0, ctUpdatedItems = 0;
+		var recentIds = new Object ();
+		function notSeenRecently (id) {
+			var flSeen = false;
+			function ageOut () {
+				var newObject = new Object ();
+				for (var x in recentIds) {
+					if (secondsSince (recentIds [x]) <= options.maxSecsBetwNotifications) {
+						newObject [x] = recentIds [x];
+						}
+					}
+				recentIds = newObject;
+				}
+			ageOut (); //remove expired ids
+			for (var x in recentIds) {
+				if (id == x) {
+					flSeen = true;
+					}
+				}
+			recentIds [id] = new Date ();
+			return (!flSeen);
+			}
+		
+		function handleMessage (theCommand, thePayload) {
+			function getTitle (item) {
+				if (item.title === undefined) {
+					return (maxStringLength (stripMarkup (item.description), 35));
+					}
+				else {
+					return (item.title);
+					}
+				}
+			
+			if (thePayload.item !== undefined) { //debugging
+				switch (theCommand) {
+					case "newItem":
+						ctNewItems++;
+						var wpData = "";
+						if (thePayload.item.metadata !== undefined) {
+							if (thePayload.item.metadata.wpSiteId !== undefined) {
+								wpData = thePayload.item.metadata.wpSiteId + "/" + thePayload.item.metadata.wpPostId;
+								}
+							}
+						if (options.flLogNewItem) {
+							console.log (`${nowstring ()} ${theCommand} ${thePayload.item.feedUrl} ${wpData}`);
+							}
+						options.newItemCallback (thePayload.theFeed, thePayload.item)
+						break;
+					case "updatedItem": //11/16/25 by DW
+						ctUpdatedItems++;
+						if (options.flLogUpdatedItem) {
+							console.log (`${nowstring ()} ${theCommand} ${thePayload.item.feedUrl}`);
+							}
+						options.updatedItemCallback (thePayload.theFeed, thePayload.item);
+						break;
+					}
+				}
+			}
+		
+		var mySocket = undefined, idSocketChecker;
+		var ctRetries = 0;
+		var flGoodnightDialogShowing = false;
+		
+		function handleGoodnightMessage () { //7/16/26 by CC -- another copy of the app signed on as this user; this one stands down so it can't save stale prefs
+			if (!flGoodnightDialogShowing) {
+				flGoodnightDialogShowing = true;
+				mySocket.close (1000, "Received goodnight message."); //1000 is the code for normal closure
+				alertDialog (options.goodnightDialogMsg, function () {
+					location.reload (true);
+					});
+				}
+			}
+		function checkConnection () {
+			if ((mySocket === undefined) && (!flGoodnightDialogShowing)) { //don't reopen the socket after being told to go away
+				mySocket = new WebSocket (options.urlFeedlandSocket);
+				mySocket.onopen = function (evt) {
+					ctRetries = 0; //we got through
+					const greeting = options.getSocketGreeting ();
+					if (greeting !== undefined) {
+						mySocket.send (greeting);
+						}
+					};
+				mySocket.onmessage = function (evt) {
+					function getPayload (jsontext) {
+						var thePayload = undefined;
+						try {
+							thePayload = JSON.parse (jsontext);
+							}
+						catch (err) {
+							}
+						return (thePayload);
+						}
+					if (evt.data !== undefined) { //no error
+						if (evt.data == "goodnight") { //7/16/26 by CC -- no payload on this one, handle it before the parsing below
+							handleGoodnightMessage ();
+							return;
+							}
+						var theCommand = stringNthField (evt.data, "\r", 1);
+						var jsontext = stringDelete (evt.data, 1, theCommand.length + 1);
+						var thePayload = getPayload (jsontext);
+						handleMessage (theCommand, thePayload);
+						}
+					};
+				mySocket.onclose = function (evt) {
+					mySocket = undefined;
+					if (ctRetries++ >= options.maxRetries) {
+						clearInterval (idSocketChecker);
+						}
+					};
+				mySocket.onerror = function (evt) {
+					console.log ("feedlandSocket: socket received an error.");
+					};
+				}
+			}
+		
+		if (options.flWebsocketEnabled) {
+			setTimeout (function () {
+				checkConnection ();
+				idSocketChecker = setInterval (checkConnection, 1000 * options.ctSecsBetwRetries);
+				}, options.initialCheckTimeout);
+			}
+		}
 //startup support -- 7/13/26 by DW
 	function simpleInits () { //7/13/26 by DW -- startup things that don't need to be waited for
 		$(".divMenuProductName").text (settingsFromServer.productNameForDisplay); //7/13/26 by DW
@@ -427,6 +578,10 @@
 				urlFeedlandSocket:  appConsts.urlSocketServer, //6/24/26 by DW
 				newItemCallback: socketNewItemCallback, //4/20/26 by DW
 				updatedItemCallback: socketUpdatedItemCallback,
+				getSocketGreeting: function () { //7/17/26 by CC
+					return (globals.myRssNetwork.getSocketGreeting ());
+					},
+				goodnightDialogMsg: getGoodbyDialogMessage (), //7/17/26 by CC
 				}
 			globals.myFeedlandSocket = new feedlandSocket (socketOptions); 
 			
