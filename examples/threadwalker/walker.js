@@ -4,7 +4,7 @@
 const https = require ("https");
 const xml2js = require ("xml2js");
 
-const urlStartingFeed = "https://users.rss.network/manton/rss.xml";
+const urlStartingFeed = "https://rss.chat/users/manton/rss.xml";
 const guidStartingPost = "https://rss.chat/?id=204";
 
 function httpGet (url, callback) {
@@ -31,6 +31,7 @@ function readFeedItems (urlFeed, callback) {
 					callback (err);
 					}
 				else {
+					const channelTitle = jstruct.rss.channel.title;
 					var items = jstruct.rss.channel.item;
 					if (items === undefined) {
 						items = [];
@@ -38,16 +39,16 @@ function readFeedItems (urlFeed, callback) {
 					if (!Array.isArray (items)) {
 						items = [items];
 						}
-					callback (undefined, items);
+					callback (undefined, items, channelTitle);
 					}
 				});
 			}
 		});
 	}
-function printItem (item, indentlevel) {
-	var author = "?";
-	if (item ["source:account"] !== undefined) {
-		author = item ["source:account"]._;
+function printItem (item, indentlevel, defaultAuthor) {
+	var author = (defaultAuthor === undefined) ? "?" : defaultAuthor;
+	if (item.source !== undefined) { //replies carry a <source> element naming the author; in a user's own feed the channel says whose feed it is
+		author = item.source._;
 		}
 	var theText = item.description;
 	if (item ["source:markdown"] !== undefined) {
@@ -83,14 +84,14 @@ function walkComments (item, indentlevel, callback) {
 		}
 	}
 
-readFeedItems (urlStartingFeed, function (err, items) {
+readFeedItems (urlStartingFeed, function (err, items, channelTitle) {
 	if (err) {
 		console.log (err.message);
 		}
 	else {
 		items.forEach (function (item) {
 			if (item.guid === guidStartingPost) {
-				printItem (item, 0);
+				printItem (item, 0, channelTitle);
 				walkComments (item, 1, function () {
 					});
 				}

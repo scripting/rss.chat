@@ -24,7 +24,7 @@ It prints the conversation as an outline -- one line per post, each reply indent
 Two constants at the top of walker.js say where to start:
 
 ```javascript
-const urlStartingFeed = "https://users.rss.network/manton/rss.xml";
+const urlStartingFeed = "https://rss.chat/users/manton/rss.xml";
 const guidStartingPost = "https://rss.chat/?id=204";
 ```
 

@@ -60,7 +60,7 @@ Try it: [https://rss.chat/getiteminfo?id=204&format=rss](https://rss.chat/getite
 
 **`/isuserindatabase?screenname=X`** and **`/isemailindatabase?email=X`** -- each answers `{"flInDatabase": true}` or `false`. The signup dialog uses these to catch collisions before they happen.
 
-**`/feed?screenname=X`** -- the user's RSS feed, built fresh from the database, returned as a string of XML. Note that feeds are normally read from their published static addresses (`https://users.rss.network/dave/rss.xml`); this call is the live-from-the-database version of the same document.
+**`/feed?screenname=X`** -- the user's RSS feed, built fresh from the database, returned as a string of XML. Note that feeds are normally read from their published static addresses (`https://rss.chat/users/dave/rss.xml`); this call is the live-from-the-database version of the same document.
 
 ### Writing
 
@@ -102,7 +102,7 @@ Every call that returns posts returns them in this shape. Fields that would be e
 
 ### Hearing about changes as they happen
 
-The server broadcasts over a websocket as posts arrive and change: `newItem` when a post is published and `updatedItem` when one is edited or its like count moves, each carrying the item record. The shipped client uses this to keep every open timeline current without polling. There is also a server-wide firehose feed carrying every post on the network; see the [basics doc](../../client/docs/basics.md) for the interop story feeds tell.
+The server broadcasts over a websocket as posts arrive and change: `newItem` when a post is published and `updatedItem` when one is edited or its like count moves, each carrying the item record. The shipped client uses this to keep every open timeline current without polling, and any app can listen the same way -- the stream is documented in [the firehose doc](firehose.md), with working demo apps in [examples/firehose](../../examples/firehose/). See the [basics doc](../../client/docs/basics.md) for the interop story feeds tell.
 
 ***
 

@@ -1,0 +1,10 @@
+{
+	"name": "firehosedemo",
+	"version": "0.1.0",
+	"description": "A command-line app that watches an rss.chat server's firehose.",
+	"main": "demo.js",
+	"dependencies": {
+		"daveutils": "*",
+		"ws": "*"
+		}
+	}

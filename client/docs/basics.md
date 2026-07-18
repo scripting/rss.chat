@@ -56,7 +56,7 @@ Every rss.chat user has a public RSS feed. Anyone can subscribe to it in any fee
 
 Your feed is the real home of everything you post. rss.chat is one way to read it; a feed reader is another. The writing is yours, and it travels.
 
-Your feed lives at a web address made from your name -- https://users.rss.network/yourname/rss.xml. For example, dave's feed is at https://users.rss.network/dave/rss.xml.
+Your feed lives at a web address made from your name -- https://rss.chat/users/yourname/rss.xml. For example, dave's feed is at https://rss.chat/users/dave/rss.xml.
 
 Paste that address into any feed reader to follow yourself, or give it to other people so they can follow you wherever they read news.
 
