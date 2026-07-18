@@ -1679,6 +1679,19 @@ function handleHttpRequest (theRequest) {
 			theRequest.httpReturn (200, "text/xml", xmltext);
 			}
 		}
+	function httpReturn (err, data) {
+		if (err) {
+			if (err.code !== undefined) { //2/22/25 by DW -- let the caller determine the code
+				theRequest.httpReturn (err.code, "text/plain", err.message);
+				}
+			else {
+				returnError (err);
+				}
+			}
+		else {
+			returnData (data);
+			}
+		}
 	function returnJson (err, jsontext) { //7/18/26 by DW
 		if (err) {
 			returnError (err);
