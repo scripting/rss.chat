@@ -647,7 +647,6 @@
 				});
 			}
 		}
-
 function startup () {
 	console.log ("startup -- 6/5/26 by DW");
 	simpleInits (); //7/13/26 by DW

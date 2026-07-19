@@ -125,7 +125,6 @@ function startTurndown () { //5/5/25 by DW
 	myTurndown = new TurndownService ();
 	}
 function getMarkdownFromHtml (htmltext) { //4/25/24 by DW
-	console.log ("getMarkdownFromHtml");
 	const markdowntext = myTurndown.turndown (htmltext);
 	return (markdowntext);
 	}

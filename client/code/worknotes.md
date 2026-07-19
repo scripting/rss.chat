@@ -1,3 +1,7 @@
+#### 7/18/26; 2:30 PM ET by CC
+
+**The browser tab now shows your server's name.** The home page's title was hard-coded to "rss.chat" — every instance, whatever its name, said rss.chat in the tab. Now the title comes from the server's `productNameForDisplay` setting, so demo.rss.chat says demo.rss.chat, and your instance says whatever you named it. Work by DW.
+
 #### 7/17/26; 12:15 PM ET by CC
 
 **Only one copy of the app runs at a time now — the goodnight kiss.** If you're signed in and open the app in a second tab, or another browser, or another machine, the older copy puts up a friendly dialog: the app is running in another tab, click OK to reload this one, or close it, no work lost. This fixes a bug that bit quietly and repeatedly: a change you made in one place — say, the URL of your icon in settings — could be silently wiped when an older copy, still running with the old settings, saved over it. Now a stale copy stands down the moment a fresh one signs on, so your latest settings always win. When the app connects, it identifies you to the server, and the server sends a "goodnight" message to every other connection you have open — the name comes from that message. (Client v0.6.7.)
