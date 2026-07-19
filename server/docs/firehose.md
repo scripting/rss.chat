@@ -48,7 +48,7 @@ Two working apps, each a page of code, live in [examples/firehose](../../example
 
 ### Background
 
-This is the same protocol FeedLand uses for its firehose -- a listener written for rss.chat can point at a FeedLand server and vice versa, which is the interop story in miniature. The idea is older than either: open a connection and let the news flow to you.
+FeedLand's firehose works the same way -- the same framing, verb and `\r` and JSON, and item records carrying the same information. The messages differ in shape, though: FeedLand's payload wraps each item together with a record describing its feed, where rss.chat sends just the item. A listener written for one needs a small adjustment to listen to the other. The idea is older than either: open a connection and let the news flow to you.
 
 ***
 

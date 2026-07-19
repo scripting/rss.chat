@@ -142,8 +142,8 @@
 	
 	
 	
-	function myAboutDialog () { //6/28/26 by DW
-		console.log ("myAboutDialog");
+	function versionsDialog () { //6/28/26 by DW
+		console.log ("versionsDialog");
 		
 		const serverAddress = settingsFromServer.urlServer;
 		const linkToServer = "<a href=\"" + serverAddress + "\" target=\"_blank\">" + serverAddress + "</a>";
@@ -155,13 +155,12 @@
 			}
 		
 		add ("<div class=\"divAboutDialogText\">");
-		add ("<b>About " + productname + "</b>");
+		add ("<b>Software versions</b>");
 		add ("<ul>");
-		add ("<li>Server address: " + linkToServer + "</li>");
+		add ("<li>Server address: " + settingsFromServer.urlServer + "</li>");
 		add ("<li>Server version: v" + globals.userData.serverVersion + ".</li>"); //7/1/26 by DW
 		add ("<li>Client version: v" + appConsts.version + ".</li>"); //7/2/26 by DW
-		add ("<li>Current theme: " + appPrefs.currentThemeName + "</li>");
-		add ("<li>Theme version: v" + getThemeVersion () + "</li>");
+		add ("<li>Current theme: " + firstCharUpper (appPrefs.currentThemeName) + " v" + getThemeVersion () + "</li>");
 		add ("<li>MySQL version: v" + globals.userData.mySqlVersion + "</li>");
 		
 		add ("</ul>");
@@ -375,12 +374,12 @@
 	
 	
 //socket --7/17/26 by DW
-	function feedlandSocket (userOptions) {
-		console.log ("feedlandSocket");
+	function firehoseSocket (userOptions) {
+		console.log ("firehoseSocket");
 		
 		const options = {
 			flWebsocketEnabled: true,
-			urlFeedlandSocket: undefined,
+			urlFirehoseSocket: undefined,
 			
 			maxRetries: 100, //when we lose a connection, we try to reconnect this many times
 			ctSecsBetwRetries: 10,
@@ -466,18 +465,22 @@
 		var ctRetries = 0;
 		var flGoodnightDialogShowing = false;
 		
-		function handleGoodnightMessage () { //7/16/26 by CC -- another copy of the app signed on as this user; this one stands down so it can't save stale prefs
+		function handleGoodnightMessage () { //7/16/26 by CC
 			if (!flGoodnightDialogShowing) {
 				flGoodnightDialogShowing = true;
 				mySocket.close (1000, "Received goodnight message."); //1000 is the code for normal closure
-				alertDialog (options.goodnightDialogMsg, function () {
+				const theDialog = alertDialog (options.goodnightDialogMsg, function () {
+					location.reload (true);
+					});
+				theDialog.on ("hidden", function () { //7/19/26 by CC
+					//reload however the dialog is dismissed, incl clicking outside it
 					location.reload (true);
 					});
 				}
 			}
 		function checkConnection () {
 			if ((mySocket === undefined) && (!flGoodnightDialogShowing)) { //don't reopen the socket after being told to go away
-				mySocket = new WebSocket (options.urlFeedlandSocket);
+				mySocket = new WebSocket (options.urlFirehoseSocket);
 				mySocket.onopen = function (evt) {
 					ctRetries = 0; //we got through
 					const greeting = options.getSocketGreeting ();
@@ -513,7 +516,7 @@
 						}
 					};
 				mySocket.onerror = function (evt) {
-					console.log ("feedlandSocket: socket received an error.");
+					console.log ("firehoseSocket: socket received an error.");
 					};
 				}
 			}
@@ -575,7 +578,7 @@
 			globals.myChatUserInterface.applyPrefs (); //5/19/26 by DW
 			
 			const socketOptions = {
-				urlFeedlandSocket:  appConsts.urlSocketServer, //6/24/26 by DW
+				urlFirehoseSocket:  appConsts.urlSocketServer, //6/24/26 by DW
 				newItemCallback: socketNewItemCallback, //4/20/26 by DW
 				updatedItemCallback: socketUpdatedItemCallback,
 				getSocketGreeting: function () { //7/17/26 by CC
@@ -583,7 +586,7 @@
 					},
 				goodnightDialogMsg: getGoodbyDialogMessage (), //7/17/26 by CC
 				}
-			globals.myFeedlandSocket = new feedlandSocket (socketOptions); 
+			globals.myFirehoseSocket = new firehoseSocket (socketOptions); 
 			
 			window.addEventListener ("popstate", function (ev) {
 				const params = getAllUrlParams ();
@@ -652,11 +655,6 @@ function startup () {
 	simpleInits (); //7/13/26 by DW
 	startPackages (function () {
 		
-		const divThemeVersion = $(".divThemeVersion");
-		divThemeVersion.text (firstCharUpper (appPrefs.currentThemeName) + " v" + getThemeVersion ()); //5/24/26 by DW
-		divThemeVersion.click (function (ev) { //7/7/26 by DW
-			myAboutDialog ();
-			});
 		
 		updateForLogin ();
 		

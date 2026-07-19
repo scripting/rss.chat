@@ -1,3 +1,7 @@
+#### 7/19/26; 10:15 AM ET by CC
+
+**The goodnight dialog no longer leaves a dead app behind.** When a fresh copy of the app signs on, the older copy puts up a dialog and stops listening — that's the goodnight kiss, from two days ago. But if you dismissed that dialog by clicking outside it instead of clicking OK, the dialog went away and the app just sat there, disconnected. Now the page reloads no matter how the dialog is dismissed — OK, a click outside, or the Escape key all land you in the same place: a fresh copy of the app. (Client v0.6.8.)
+
 #### 7/18/26; 2:30 PM ET by CC
 
 **The browser tab now shows your server's name.** The home page's title was hard-coded to "rss.chat" — every instance, whatever its name, said rss.chat in the tab. Now the title comes from the server's `productNameForDisplay` setting, so demo.rss.chat says demo.rss.chat, and your instance says whatever you named it. Work by DW.

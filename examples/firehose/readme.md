@@ -51,6 +51,6 @@ Both demos work with any rss.chat server -- the address they connect to is the `
 
 ### Background
 
-The same protocol runs FeedLand's firehose -- a listener written for one can listen to the other. The original demos these are adapted from live in the [feedlandSocket repo](https://github.com/scripting/feedlandSocket).
+FeedLand's firehose works the same way -- same framing, and item records carrying the same information -- but the messages differ in shape: FeedLand wraps each item with a record describing its feed, rss.chat sends just the item. A listener written for one needs a small adjustment to listen to the other. The original demos these are adapted from live in the [feedlandSocket repo](https://github.com/scripting/feedlandSocket).
 
 Written by Claude Code.

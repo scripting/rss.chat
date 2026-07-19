@@ -1,0 +1,48 @@
+<html>
+	<head>
+		<title>Inbound RSS for WordPress</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<script src="https://s3.amazonaws.com/scripting.com/code/includes/jquery-1.9.1.min.js"></script>
+		<link href="https://s3.amazonaws.com/scripting.com/code/includes/bootstrap.css" rel="stylesheet">
+		<script src="https://s3.amazonaws.com/scripting.com/code/includes/bootstrap.min.js"></script>
+
+		<link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700" rel="stylesheet">
+
+		<script src="https://s3.amazonaws.com/scripting.com/code/includes/basic/code.js?x=2"></script>
+		<link href="https://s3.amazonaws.com/scripting.com/code/includes/basic/styles.css" rel="stylesheet" type="text/css">
+
+		<script src="https://s3.amazonaws.com/scripting.com/code/wpidentity/client/api2.js"></script>
+
+		<script src="https://s3.amazonaws.com/fargo.io/code/markdownConverter.js"></script>
+
+		<script src="code.js"></script>
+		<link rel="stylesheet" href="styles.css"/>
+
+		</head>
+	<body>
+		<div class="divPageBody">
+			<div class="divSignedOn" id="idSignedOn" style="display: none;">
+				<div class="divConnectCard">
+					<div class="divConnectTitle">You're signed on</div>
+					<p>Leave this page open. When a post appears in one of the feeds this app is watching, it shows up on your WordPress site. Progress messages appear in the browser's console.</p>
+					</div>
+				</div>
+			<div class="divSignedOff" id="idSignedOff" style="display: none;">
+				<div class="divConnectCard">
+					<div class="divConnectTitle">Before you sign on...</div>
+					<p>This app uses <a href="https://wordland.social/">WordLand</a> to send posts to WordPress. To do that we need you to authorize that via wordpress.com.</p>
+					<p>Click the button below to start the process. WordPress.com will ask you to approve. Then you'll come back here, ready to go.</p>
+					<p>If you've used WordLand before, you may not be asked anything at all.</p>
+					<p class="pConnectButton"><img alt="Log in with WordPress.com" src="https://s0.wp.com/i/wpcc-button.png" width="231" onclick="myWordpress.connectWithWordpress ()"></p>
+					</div>
+				</div>
+			</div>
+		<script>
+			$(document).ready (function () {
+				startup ();
+				});
+			</script>
+		</body>
+	</html>

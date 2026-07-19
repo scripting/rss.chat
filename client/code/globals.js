@@ -1,5 +1,5 @@
 const appConsts = {
-	version: "0.6.7", //7/17/26 by DW
+	version: "0.6.8", 
 	
 	productName: settingsFromServer.productName,
 	productNameForDisplay: settingsFromServer.productNameForDisplay,
@@ -54,7 +54,7 @@ var appPrefs = { //5/16/26 by DW
 var globals = {
 	myRssNetwork: undefined,
 	myChatUserInterface: undefined, 
-	myFeedlandSocket: undefined,
+	myFirehoseSocket: undefined,
 	lastFeedUrl: null, //should be undefined
 	lastDateStr: null, 
 	currentTimelineItem: undefined, //6/1/26 by DW
