@@ -441,7 +441,7 @@ var config = {
 			}
 		}
 	function getRecentUserItems (screenname, feedUrl, maxCt, callback) {
-		const sqltext = "select items.*, users.prefs ->> '$.myAvatarImageUrl' as imageUrl, users.prefs ->> '$.myFeedTitle' as feedTitle, users.prefs ->> '$.myFeedLink' as feedLink, users.prefs ->> '$.myFeedDescription' as feedDescription, (select count(*) from likes where likes.itemId = items.id) as ctLikes, (select count(*) from likes where likes.itemId = items.id and likes.screenname = " + davesql.encode (screenname) + ") as flLiked, (select count(*) from items c where c.inReplyTo = items.id and (c.flDeleted is null or c.flDeleted = 0)) as ctReplies, (select coalesce (nullif (u2.prefs ->> '$.myFeedTitle', ''), i2.author) from items i2 left join users u2 on u2.screenname = i2.author where i2.id = items.inReplyTo) as inReplyToAuthor from items left join users on users.screenname = items.author where items.feedUrl = " + davesql.encode (feedUrl) + " and (items.flDeleted is null or items.flDeleted = 0) order by pubDate desc limit " + maxCt + ";";
+		const sqltext = "select items.*, json_unquote(json_extract(users.prefs, '$.myAvatarImageUrl')) as imageUrl, json_unquote(json_extract(users.prefs, '$.myFeedTitle')) as feedTitle, json_unquote(json_extract(users.prefs, '$.myFeedLink')) as feedLink, json_unquote(json_extract(users.prefs, '$.myFeedDescription')) as feedDescription, (select count(*) from likes where likes.itemId = items.id) as ctLikes, (select count(*) from likes where likes.itemId = items.id and likes.screenname = " + davesql.encode (screenname) + ") as flLiked, (select count(*) from items c where c.inReplyTo = items.id and (c.flDeleted is null or c.flDeleted = 0)) as ctReplies, (select coalesce (nullif (json_unquote(json_extract(u2.prefs, '$.myFeedTitle')), ''), i2.author) from items i2 left join users u2 on u2.screenname = i2.author where i2.id = items.inReplyTo) as inReplyToAuthor from items left join users on users.screenname = items.author where items.feedUrl = " + davesql.encode (feedUrl) + " and (items.flDeleted is null or items.flDeleted = 0) order by pubDate desc limit " + maxCt + ";";
 		davesql.runSqltext (sqltext, function (err, result) {
 			if (err) {
 				callback (err);
@@ -465,7 +465,7 @@ var config = {
 				maxCt = config.maxRecentItems;
 				}
 			}
-		const sqltext = "select items.*, users.prefs ->> '$.myAvatarImageUrl' as imageUrl, users.prefs ->> '$.myFeedTitle' as feedTitle, users.prefs ->> '$.myFeedLink' as feedLink, users.prefs ->> '$.myFeedDescription' as feedDescription, (select count(*) from likes where likes.itemId = items.id) as ctLikes, (select count(*) from likes where likes.itemId = items.id and likes.screenname = " + davesql.encode (screenname) + ") as flLiked, (select count(*) from items c where c.inReplyTo = items.id and (c.flDeleted is null or c.flDeleted = 0)) as ctReplies, (select coalesce (nullif (u2.prefs ->> '$.myFeedTitle', ''), i2.author) from items i2 left join users u2 on u2.screenname = i2.author where i2.id = items.inReplyTo) as inReplyToAuthor from items left join users on users.screenname = items.author where (items.flDeleted is null or items.flDeleted = 0) order by pubDate desc limit " + davesql.encode (maxCt) + ";";
+		const sqltext = "select items.*, json_unquote(json_extract(users.prefs, '$.myAvatarImageUrl')) as imageUrl, json_unquote(json_extract(users.prefs, '$.myFeedTitle')) as feedTitle, json_unquote(json_extract(users.prefs, '$.myFeedLink')) as feedLink, json_unquote(json_extract(users.prefs, '$.myFeedDescription')) as feedDescription, (select count(*) from likes where likes.itemId = items.id) as ctLikes, (select count(*) from likes where likes.itemId = items.id and likes.screenname = " + davesql.encode (screenname) + ") as flLiked, (select count(*) from items c where c.inReplyTo = items.id and (c.flDeleted is null or c.flDeleted = 0)) as ctReplies, (select coalesce (nullif (json_unquote(json_extract(u2.prefs, '$.myFeedTitle')), ''), i2.author) from items i2 left join users u2 on u2.screenname = i2.author where i2.id = items.inReplyTo) as inReplyToAuthor from items left join users on users.screenname = items.author where (items.flDeleted is null or items.flDeleted = 0) order by pubDate desc limit " + davesql.encode (maxCt) + ";";
 		davesql.runSqltext (sqltext, function (err, result) {
 			if (err) {
 				callback (err);
@@ -480,7 +480,7 @@ var config = {
 			});
 		}
 	function getItemById (screenname, id, callback) { //6/4/26 by Claude
-		const sqltext = "select items.*, (select count(*) from likes where likes.itemId = items.id) as ctLikes, (select count(*) from likes where likes.itemId = items.id and likes.screenname = " + davesql.encode (screenname) + ") as flLiked, (select count(*) from items c where c.inReplyTo = items.id and (c.flDeleted is null or c.flDeleted = 0)) as ctReplies, (select coalesce (nullif (u2.prefs ->> '$.myFeedTitle', ''), i2.author) from items i2 left join users u2 on u2.screenname = i2.author where i2.id = items.inReplyTo) as inReplyToAuthor from items where id = " + davesql.encode (id) + ";";
+		const sqltext = "select items.*, (select count(*) from likes where likes.itemId = items.id) as ctLikes, (select count(*) from likes where likes.itemId = items.id and likes.screenname = " + davesql.encode (screenname) + ") as flLiked, (select count(*) from items c where c.inReplyTo = items.id and (c.flDeleted is null or c.flDeleted = 0)) as ctReplies, (select coalesce (nullif (json_unquote(json_extract(u2.prefs, '$.myFeedTitle')), ''), i2.author) from items i2 left join users u2 on u2.screenname = i2.author where i2.id = items.inReplyTo) as inReplyToAuthor from items where id = " + davesql.encode (id) + ";";
 		davesql.runSqltext (sqltext, function (err, result) {
 			if (err) {
 				callback (err);
@@ -507,14 +507,14 @@ var config = {
 			const sqltext = `
 				select
 					items.*,
-					users.prefs ->> '$.myAvatarImageUrl' as imageUrl,
-					users.prefs ->> '$.myFeedTitle' as feedTitle,
-					users.prefs ->> '$.myFeedLink' as feedLink,
-					users.prefs ->> '$.myFeedDescription' as feedDescription,
+					json_unquote(json_extract(users.prefs, '$.myAvatarImageUrl')) as imageUrl,
+					json_unquote(json_extract(users.prefs, '$.myFeedTitle')) as feedTitle,
+					json_unquote(json_extract(users.prefs, '$.myFeedLink')) as feedLink,
+					json_unquote(json_extract(users.prefs, '$.myFeedDescription')) as feedDescription,
 					(select count(*) from likes where likes.itemId = items.id) as ctLikes,
 					(select count(*) from likes where likes.itemId = items.id and likes.screenname = ${davesql.encode (screenname)}) as flLiked,
 					(select count(*) from items c where c.inReplyTo = items.id and (c.flDeleted is null or c.flDeleted = 0)) as ctReplies,
-					(select coalesce (nullif (u2.prefs ->> '$.myFeedTitle', ''), i2.author)
+					(select coalesce (nullif (json_unquote(json_extract(u2.prefs, '$.myFeedTitle')), ''), i2.author)
 						from items i2
 						left join users u2 on u2.screenname = i2.author
 						where i2.id = items.inReplyTo) as inReplyToAuthor
@@ -545,7 +545,7 @@ var config = {
 			}
 		}
 	function getItemAndReplies (screenname, idParent, callback) { //6/30/26 by CC
-		const sqltext = "select items.*, users.prefs ->> '$.myAvatarImageUrl' as imageUrl, users.prefs ->> '$.myFeedTitle' as feedTitle, users.prefs ->> '$.myFeedLink' as feedLink, users.prefs ->> '$.myFeedDescription' as feedDescription, (select count(*) from likes where likes.itemId = items.id) as ctLikes, (select count(*) from likes where likes.itemId = items.id and likes.screenname = " + davesql.encode (screenname) + ") as flLiked, (select count(*) from items c where c.inReplyTo = items.id and (c.flDeleted is null or c.flDeleted = 0)) as ctReplies, (select coalesce (nullif (u2.prefs ->> '$.myFeedTitle', ''), i2.author) from items i2 left join users u2 on u2.screenname = i2.author where i2.id = items.inReplyTo) as inReplyToAuthor from items left join users on users.screenname = items.author where (items.id = " + davesql.encode (idParent) + " or items.inReplyTo = " + davesql.encode (idParent) + ") and (items.flDeleted is null or items.flDeleted = 0) order by pubDate asc;";
+		const sqltext = "select items.*, json_unquote(json_extract(users.prefs, '$.myAvatarImageUrl')) as imageUrl, json_unquote(json_extract(users.prefs, '$.myFeedTitle')) as feedTitle, json_unquote(json_extract(users.prefs, '$.myFeedLink')) as feedLink, json_unquote(json_extract(users.prefs, '$.myFeedDescription')) as feedDescription, (select count(*) from likes where likes.itemId = items.id) as ctLikes, (select count(*) from likes where likes.itemId = items.id and likes.screenname = " + davesql.encode (screenname) + ") as flLiked, (select count(*) from items c where c.inReplyTo = items.id and (c.flDeleted is null or c.flDeleted = 0)) as ctReplies, (select coalesce (nullif (json_unquote(json_extract(u2.prefs, '$.myFeedTitle')), ''), i2.author) from items i2 left join users u2 on u2.screenname = i2.author where i2.id = items.inReplyTo) as inReplyToAuthor from items left join users on users.screenname = items.author where (items.id = " + davesql.encode (idParent) + " or items.inReplyTo = " + davesql.encode (idParent) + ") and (items.flDeleted is null or items.flDeleted = 0) order by pubDate asc;";
 		davesql.runSqltext (sqltext, function (err, result) {
 			if (err) {
 				callback (err);
@@ -1360,7 +1360,7 @@ var config = {
 			});
 		}
 	function getMostActiveToday (callback) { //7/1/26 by CC
-		const sqltext = "select screenname, coalesce (nullif (prefs ->> '$.myFeedTitle', ''), screenname) as name, prefs ->> '$.myAvatarImageUrl' as imageUrl, ctHits, ctHitsToday, whenLastHit from users order by ctHitsToday desc, ctHits desc limit 100;";
+		const sqltext = "select screenname, coalesce (nullif (json_unquote(json_extract(prefs, '$.myFeedTitle')), ''), screenname) as name, json_unquote(json_extract(prefs, '$.myAvatarImageUrl')) as imageUrl, ctHits, ctHitsToday, whenLastHit from users order by ctHitsToday desc, ctHits desc limit 100;";
 		davesql.runSqltext (sqltext, function (err, result) {
 			if (err) {
 				callback (err);
