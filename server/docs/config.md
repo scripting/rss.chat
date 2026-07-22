@@ -84,7 +84,7 @@ The public URL of that subscription list.
 
 ### Email sign-in
 
-Sign-in is a magic link: the user enters an email, the server mails a confirmation link. These three fields shape that email, and each one names your server.
+Sign-in is a magic link: the user enters an email, the server mails a confirmation link. How the mail gets sent -- SMTP or Amazon SES -- is covered in [email.md](email.md). These three fields shape the email itself, and each one names your server.
 
 #### mailSender
 

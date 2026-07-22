@@ -9,8 +9,9 @@
 5. Open config.json in a text editor and replace the example values with your own. Every setting is explained in [config.md](config.md).
 	- The example config sets `"flUseSqlite": true` in the `database` section. That's the whole database setup. There is no database server to install, no accounts, no passwords -- the database is a single file the server creates for itself the first time it runs.
 	- The example config also sets `"flFeedsInDatabase": true`, which means the server stores its feeds in the database and serves them itself, from your own domain. (The alternative, publishing feeds to Amazon S3, is covered in [config.md](config.md).)
-6. In the code folder, run `npm install`.
-7. Start the server: `node rssnetwork.js`.
+6. Set up email sending -- sign-in is a magic link the server emails to the user, so nobody can sign in until this works. [email.md](email.md) explains the two ways: SMTP credentials from an email provider you already use, or Amazon SES.
+7. In the code folder, run `npm install`.
+8. Start the server: `node rssnetwork.js`.
 	- The first time it starts, the server creates its database at `data/data.db` and sets up all its tables. You'll see it in the folder after the first run. That file *is* your database.
 	- The server listens on port 1420. If you're putting a reverse proxy like Caddy or nginx in front of it, that's the port to point it at. To use a different port, set `"port"` in config.json or the PORT environment variable.
 	- Websocket connections use their own port, 1422. If your setup uses websockets (live updates in the browser), your proxy needs to forward websocket upgrade requests there. To change it, set `"websocketPort"` in config.json.
