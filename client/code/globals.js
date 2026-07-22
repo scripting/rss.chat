@@ -1,5 +1,5 @@
 const appConsts = {
-	version: "0.6.9", //7/20/26 by DW
+	version: "0.6.10", 
 	
 	productName: settingsFromServer.productName,
 	productNameForDisplay: settingsFromServer.productNameForDisplay,

@@ -1,3 +1,7 @@
+#### 7/21/26; 12:00 PM ET by CC
+
+**The Software versions dialog now tells you which database engine the server runs on.** Servers can now run on SQLite as well as MySQL (that's the day's big server-side story -- see the server worknotes), and the dialog's last line follows along: it says "SQLite version" or "MySQL version" to match the actual engine, with the real version number either way. The server sends the engine name in a new `databaseEngine` member of the user-data record, and the client reads it as of v0.6.10. First seen live on scratchpad.rss.chat, the first server running on SQLite.
+
 #### 7/20/26; 5:15 PM ET by CC
 
 **The reply editor got out of your way.** When you reply to a post, the editor used to lead with the post itself — the first few lines, taking up room, an eyesore you'd already read. Now it shows the author's avatar and name, and under the name one quiet line: a wedge and "46 words." Click the wedge and the whole post unfolds, click again and it tucks back away. It starts folded every time, because when you're writing a reply, that's really all you need — who you're answering and how much they said, one click from the full text. (Theme v0.5.331–0.5.337.)
