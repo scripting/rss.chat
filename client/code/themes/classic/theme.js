@@ -1,7 +1,7 @@
 function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic theme (3-col), renamed from twitter 7/2/26
 			console.log ("chatUserInterface (classic)");
 
-			const themesVersion = "0.5.337"; //bump on every theme edit -- #155: the open post shows whole with no scroll bar, editor keeps its height, air above the title box restored, 7/20/26 by CC
+			const themesVersion = "0.5.338"; //bump on every theme edit -- #188: paste an image into the composer, it uploads, the picture appears at the cursor, 7/22/26 by CC
 
 			var options = {
 				whereToAppend: undefined,
@@ -82,6 +82,7 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 			var flDraftChanged = false;
 			var draftSaveTimeout, theSpinner; //assigned by draft/publish flow
 			var currentEditorMode = appPrefs.defaultEditorMode || "wizzy";
+			var ctPendingImageUploads = 0, idNextImageUpload = 1; //7/22/26 by CC -- #188: publishing waits while images upload
 
 			const divReplyOverlay = $('<div class="divReplyOverlay"></div>');
 			const divReplyModal = $('<div class="divReplyModal"></div>');
@@ -2207,7 +2208,7 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 					flBodyChanged = (inputReplyComposer.html () !== editOriginalBody);
 					}
 				const flTitleChanged = currentTitle !== editOriginalTitle;
-				const flDisabled = flBodyEmpty || (!flBodyChanged && !flTitleChanged);
+				const flDisabled = flBodyEmpty || (!flBodyChanged && !flTitleChanged) || (ctPendingImageUploads > 0); //7/22/26 by CC -- #188: no publishing while an image is still uploading
 				buttonReplyPost.prop ("disabled", flDisabled);
 				}
 			function setTitleDialog () {
@@ -2442,6 +2443,39 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 				cleanNode (doc.body);
 				return doc.body.innerHTML;
 				}
+			function uploadPastedImage (theFile) { //7/22/26 by CC -- #188: a pasted image uploads to the server, the picture appears at the cursor
+				const maxImageBytes = 2 * 1024 * 1024; //matches the server's default maxMediaUploadBytes
+				if (globals.myRssNetwork.uploadMedia === undefined) {
+					alertDialog ("Can't add the image because the software isn't up to date.");
+					return;
+					}
+				if (theFile.size > maxImageBytes) {
+					alertDialog ("Can't add the image because it's larger than the 2MB limit.");
+					return;
+					}
+				const idPlaceholder = "idImageUpload" + idNextImageUpload++;
+				document.execCommand ("insertHTML", false, '<span class="spanImageUploading" id="' + idPlaceholder + '">Uploading image&#x2026;</span>'); //horizontal ellipsis
+				ctPendingImageUploads++;
+				editorContentChanged ();
+				const theReader = new FileReader ();
+				theReader.onload = function () {
+					const base64text = theReader.result.substring (theReader.result.indexOf (",") + 1);
+					globals.myRssNetwork.uploadMedia (theFile.type, base64text, function (err, data) {
+						ctPendingImageUploads--;
+						const spanPlaceholder = $("#" + idPlaceholder);
+						if (err) {
+							spanPlaceholder.remove ();
+							alertDialog (err.message);
+							}
+						else {
+							spanPlaceholder.replaceWith ('<img src="' + data.url + '">');
+							}
+						editorContentChanged ();
+						scheduleDraftSave ();
+						});
+					};
+				theReader.readAsDataURL (theFile);
+				}
 			inputReplyComposer.on ("paste", function (event) {
 				event.preventDefault ();
 				const clipboardData = event.originalEvent.clipboardData || window.clipboardData;
@@ -2449,6 +2483,20 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 					return;
 					}
 				const flMarkdownMode = inputReplyComposer.hasClass ("flMarkdownMode");
+
+				const theClipboardItems = clipboardData.items; //7/22/26 by CC -- #188: a pasted image (screenshot or copied image file) uploads and lands at the cursor
+				if ((theClipboardItems !== undefined) && (!flMarkdownMode)) {
+					var flFoundImage = false;
+					for (var i = 0; i < theClipboardItems.length; i++) {
+						if ((theClipboardItems [i].kind === "file") && (theClipboardItems [i].type.indexOf ("image/") === 0)) {
+							uploadPastedImage (theClipboardItems [i].getAsFile ());
+							flFoundImage = true;
+							}
+						}
+					if (flFoundImage) {
+						return;
+						}
+					}
 
 				const clipboardPlainText = clipboardData.getData ("text/plain");
 				const trimmedClipboard = clipboardPlainText.trim ();
@@ -2531,7 +2579,7 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 					refreshUpdateDisabled ();
 					}
 				else {
-					buttonReplyPost.prop ("disabled", flEmpty);
+					buttonReplyPost.prop ("disabled", flEmpty || (ctPendingImageUploads > 0)); //7/22/26 by CC -- #188: no publishing while an image is still uploading
 					}
 				scheduleDraftSave ();
 				updateModalCharCount ();

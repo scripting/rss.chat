@@ -1,4 +1,4 @@
-var myVersion = "0.6.0", myProductName = "rss.network";
+var myVersion = "0.6.3", myProductName = "rss.network";
 
 const daveappserver = require ("daveappserver");
 const rss = require ("daverss");
@@ -11,6 +11,7 @@ const request = require ("request");
 const davesql = require ("davesql"); 
 const turndown = require ("turndown"); //5/3/26 by DW
 const autolinker = require ("autolinker"); //7/13/26 by CC
+const sanitizeHtml = require ("sanitize-html"); //7/23/26 by CC
 
 var config = {
 	productName: "rssNetwork",
@@ -48,6 +49,8 @@ var config = {
 	
 	maxRecentItems: 100, //4/29/26 by DW
 	
+	maxMediaUploadBytes: 2 * 1024 * 1024, //7/22/26 by CC -- #188, the limit on one image
+	
 	urlExtrasOpml: "https://feedland.social/opml?screenname=davewiner&catname=davesources",
 	
 	robotsText: "User-agent: *\nDisallow: /getitembyguid\nDisallow: /getiteminfo\n", //7/1/26 by DW
@@ -57,6 +60,13 @@ var config = {
 	flFeedsInDatabase: false, //7/15/26 by DW
 	flRemoveBlanksAtEnd: true, //7/20/26 by DW
 	titleForSublist: undefined, //7/20/26 by DW
+	legalTags: { //7/23/26 by DW
+		allowedTags: ["p", "br", "a", "b", "i", "strong", "em", "img", "blockquote", "ul", "ol", "li", "h3"],
+		allowedAttributes: {
+			a: ["href"],
+			img: ["src", "alt"]
+			}
+		},
 	};
 
 //misc stuff
@@ -227,6 +237,15 @@ var config = {
 			return (theText);
 			}
 		}
+	function sanitizeHtmltext (htmltext) { //7/23/26 by CC
+		if (htmltext === undefined) {
+			return (undefined);
+			}
+		else {
+			return (sanitizeHtml (htmltext, config.legalTags));
+			}
+		}
+	
 //sql code
 	function initNewDatabase (callback) { //7/21/26 by CC
 		const theStatements = [
@@ -238,6 +257,7 @@ var config = {
 			"create table if not exists likes (screenname text collate nocase, itemId integer, whenCreated text default current_timestamp, primary key (screenname, itemId));",
 			"create index if not exists itemId on likes (itemId);",
 			"create table if not exists files (path text not null, type text, filecontents text, whenCreated text default current_timestamp, whenUpdated text default current_timestamp, ctSaves integer not null default 1, primary key (path));",
+			"create table if not exists media (id integer primary key, screenname text collate nocase, type text, mediabytes blob, size integer, whenCreated text default current_timestamp);",
 			"create trigger if not exists usersWhenUpdated after update on users begin update users set whenUpdated = datetime ('now') where screenname = new.screenname; end;",
 			"create trigger if not exists itemsWhenUpdated after update on items begin update items set whenUpdated = datetime ('now') where id = new.id; end;"
 			];
@@ -258,7 +278,7 @@ var config = {
 		nextStatement ();
 		}
 	function exportDatabase (f, callback) { //7/21/26 by CC
-		const theTables = ["users", "items", "likes", "files"];
+		const theTables = ["users", "items", "likes", "files", "media"]; //7/22/26 by CC -- #188
 		const jstruct = new Object ();
 		var ixTable = 0;
 		function nextTable () {
@@ -279,6 +299,13 @@ var config = {
 						callback (err);
 						}
 					else {
+						if (tableName === "media") { //7/22/26 by CC -- #188, bytes travel as base64 text
+							result.forEach (function (row) {
+								if (Buffer.isBuffer (row.mediabytes)) {
+									row.mediabytes = row.mediabytes.toString ("base64");
+									}
+								});
+							}
 						jstruct [tableName] = result;
 						nextTable ();
 						}
@@ -288,7 +315,7 @@ var config = {
 		nextTable ();
 		}
 	function importDatabase (f, callback) { //7/21/26 by CC
-		function convertRow (row) { //dates arrive as ISO strings, nulls insert wrong when encoded -- fix both
+		function convertRow (row, tableName) { //dates arrive as ISO strings, nulls insert wrong when encoded -- fix both
 			for (var x in row) {
 				if (row [x] === null) {
 					delete row [x]; //a missing column inserts as null on both engines
@@ -298,6 +325,9 @@ var config = {
 						row [x] = davesql.formatDateTime (row [x]);
 						}
 					}
+				}
+			if ((tableName === "media") && (row.mediabytes !== undefined)) { //7/22/26 by CC -- #188, bytes travel as base64 text
+				row.mediabytes = Buffer.from (row.mediabytes, "base64");
 				}
 			}
 		fs.readFile (f, "utf8", function (err, filetext) {
@@ -313,7 +343,7 @@ var config = {
 					callback (err);
 					return;
 					}
-				const theTables = ["users", "items", "likes", "files"];
+				const theTables = ["users", "items", "likes", "files", "media"]; //7/22/26 by CC -- #188
 				var ixTable = 0, ctRows = 0;
 				function nextTable () {
 					if (ixTable >= theTables.length) {
@@ -333,7 +363,7 @@ var config = {
 									}
 								else {
 									const row = theRows [ixRow++];
-									convertRow (row);
+									convertRow (row, tableName);
 									davesql.runSqltext ("insert into " + tableName + " " + davesql.encodeValues (row), function (err) {
 										if (err) {
 											callback (err);
@@ -1258,7 +1288,7 @@ var config = {
 						else {
 							const theNewItem = {
 								title: postRec.title,
-								description: linkifyUrls (trimTrailingBlankLines (postRec.description)), //7/13/26 by CC -- #175; 7/20/26 -- #192
+								description: sanitizeHtmltext (linkifyUrls (trimTrailingBlankLines (postRec.description))), //7/13/26 by CC -- #175; 7/20/26 -- #192; 7/23/26 -- XSS
 								markdowntext: trimTrailingBlankLines (postRec.markdowntext), //6/3/26 by DW; 7/20/26 by CC -- #192
 								inReplyTo: postRec.inReplyTo,
 								feedUrl: getFeedUrl (userRec.screenname),
@@ -1334,7 +1364,7 @@ var config = {
 											callback ({message});
 											}
 										else {
-											postRec.description = linkifyUrls (trimTrailingBlankLines (postRec.description)); //7/13/26 by CC -- #175; 7/20/26 -- #192
+											postRec.description = sanitizeHtmltext (linkifyUrls (trimTrailingBlankLines (postRec.description))); //7/13/26 by CC -- #175; 7/20/26 -- #192; 7/23/26 -- XSS
 											postRec.markdowntext = trimTrailingBlankLines (postRec.markdowntext); //7/20/26 by CC -- #192
 											updateItem (postRec, function (err, itemRec) {
 												if (err) {
@@ -1450,6 +1480,67 @@ var config = {
 					}
 				}
 			});
+		}
+	function uploadMedia (email, code, type, base64text, callback) { //7/22/26 by CC -- #188
+		if (isEmailBlocked (email)) {
+			const message = "Can't upload the media item because the user is not authorized.";
+			callback ({message});
+			}
+		else {
+			getUserInfoByEmail (email, function (err, userRec) {
+				if (err) {
+					callback (err);
+					}
+				else {
+					if (userRec === undefined) {
+						const message = "Can't upload the media item because there is no user with email \"" + email + "\".";
+						callback ({message});
+						}
+					else {
+						if (userRec.emailSecret !== code) {
+							const message = "Can't upload the media item because the authorization code is not correct.";
+							callback ({message});
+							}
+						else {
+							if (type === undefined) {
+								const message = "Can't upload the media item because no type was specified.";
+								callback ({message});
+								}
+							else {
+								if ((base64text === undefined) || (base64text.length === 0)) {
+									const message = "Can't upload the media item because no data arrived in the request body.";
+									callback ({message});
+									}
+								else {
+									const theBytes = Buffer.from (base64text, "base64");
+									if (theBytes.length > config.maxMediaUploadBytes) {
+										const message = "Can't upload the media item because it's " + theBytes.length + " bytes, larger than the limit of " + config.maxMediaUploadBytes + " bytes.";
+										callback ({message});
+										}
+									else {
+										const theNewMedia = {
+											screenname: userRec.screenname,
+											type,
+											mediabytes: theBytes,
+											size: theBytes.length
+											};
+										addMedia (theNewMedia, function (err, mediaRec) {
+											if (err) {
+												callback (err);
+												}
+											else {
+												const url = config.urlServerForClient + "media/" + mediaRec.id;
+												callback (undefined, {url, id: mediaRec.id, type: mediaRec.type, size: mediaRec.size});
+												}
+											});
+										}
+									}
+								}
+							}
+						}
+					}
+				});
+			}
 		}
 	function bumpUserHits (screenname, callback) { //7/1/26 by CC
 		const now = new Date (); //7/21/26 by CC -- sqlite has no now () function, the timestamp comes from the app
@@ -1749,6 +1840,50 @@ var config = {
 				}
 			});
 		}
+	function addMedia (mediaRec, callback) { //7/22/26 by CC -- #188
+		const theValues = {
+			screenname: mediaRec.screenname,
+			type: mediaRec.type,
+			mediabytes: mediaRec.mediabytes,
+			size: mediaRec.size
+			};
+		const sqltext = "insert into media " + davesql.encodeValues (theValues);
+		davesql.runSqltext (sqltext, function (err, result) {
+			if (err) {
+				callback (err);
+				}
+			else {
+				mediaRec.id = result.insertId;
+				callback (undefined, mediaRec);
+				}
+			});
+		}
+	function getMediaById (id, callback) { //7/22/26 by CC -- #188
+		const idMedia = Number (id);
+		if (isNaN (idMedia)) {
+			const message = "Can't get the media item because the id \"" + id + "\" isn't a number.";
+			const code = 404;
+			callback ({message, code});
+			}
+		else {
+			const sqltext = "select * from media where id = " + davesql.encode (idMedia) + ";";
+			davesql.runSqltext (sqltext, function (err, result) {
+				if (err) {
+					callback (err);
+					}
+				else {
+					if (result.length === 0) {
+						const message = "Can't get the media item because there is no item with id \"" + id + "\".";
+						const code = 404;
+						callback ({message, code});
+						}
+					else {
+						callback (undefined, result [0]);
+						}
+					}
+				});
+			}
+		}
 	function publishFeedFile (relpath, xmltext, callback) { //the one place that decides database vs s3
 		if (config.flFeedsInDatabase) {
 			writeDatabaseFile ("/users/" + relpath, "text/xml", xmltext, callback);
@@ -1996,8 +2131,22 @@ function handleHttpRequest (theRequest) {
 		case "/favicon.ico": //7/14/26 by DW
 			returnRedirect (config.urlFavicon);
 			return (true);
+		case "/uploadmedia": //7/22/26 by CC -- #188
+			uploadMedia (params.emailaddress, params.emailcode, params.type, theRequest.postBody, httpReturn);
+			return (true);
 		
 		default: //7/17/26 by DW
+			if (utils.beginsWith (theRequest.lowerpath, "/media/")) { //7/22/26 by CC -- #188
+				getMediaById (utils.stringLastField (theRequest.lowerpath, "/"), function (err, mediaRec) {
+					if (err) {
+						theRequest.httpReturn (404, "text/plain", err.message);
+						}
+					else {
+						theRequest.httpReturn (200, mediaRec.type, mediaRec.mediabytes);
+						}
+					});
+				return (true);
+				}
 			if (config.flFeedsInDatabase) { //7/15/26 by CC
 				if (utils.beginsWith (theRequest.lowerpath, "/users/") || utils.beginsWith (theRequest.lowerpath, "/data/")) {
 					readDatabaseFile (theRequest.lowerpath, function (err, fileRec) {

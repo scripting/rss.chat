@@ -727,6 +727,15 @@
 				padding-bottom: 0;
 				padding-left: 24px;
 				}
+			.divChat .divTweetText img, .divChat .inputComposer img, .inputReplyComposer img, .divReplyParentText img { /*7/22/26 by CC -- #188: a pasted image fits the column, in displayed posts and in the editor*/
+				max-width: 100%;
+				height: auto;
+				border-radius: 8px;
+				}
+			.spanImageUploading { /*7/22/26 by CC -- #188: the stand-in text while a pasted image uploads*/
+				color: var(--secondary-text-color, #536471);
+				font-style: italic;
+				}
 			.divChat .divTweetText li:not(:last-child), .divChat .inputComposer li:not(:last-child), .inputReplyComposer li:not(:last-child) { /*6/29/26 by CC -- #91: a little air between list items, in displayed posts and in both editors, matching wordland's 5px; skip the last item so it doesn't add to the list's own bottom margin*/
 				margin-bottom: 5px;
 				}

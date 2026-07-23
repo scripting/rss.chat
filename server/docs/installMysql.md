@@ -87,6 +87,16 @@ create table files (
 	ctSaves int unsigned not null default 1,
 	primary key (path)
 	) character set utf8mb4 collate utf8mb4_unicode_ci;
+
+create table media (
+	id int unsigned not null auto_increment,
+	screenname varchar (255),
+	type varchar (64),
+	mediabytes mediumblob,
+	size int unsigned,
+	whenCreated datetime default current_timestamp,
+	primary key (id)
+	) character set utf8mb4 collate utf8mb4_unicode_ci;
 ```
 
 ### Notes on the schema
@@ -109,6 +119,8 @@ create table files (
 **likes** -- one row per (user, item) like. The primary key `(screenname, itemId)` makes a like idempotent (you can't like the same item twice) and the toggle a single insert or delete. There is no copy of the like data on the item row -- the item-read queries compute `ctLikes` (a count) and `flLiked` (does the current viewer have a row) on the fly, which is what the `itemId` index is for. Unlike FeedLand, which keeps a denormalized list of likers stamped on each item, this is the single source of truth.
 
 **files** -- the feeds and the subscription list, when `flFeedsInDatabase` is on. One row per file: `path` is the request path the file is served at (`/users/dave/rss.xml`), `filecontents` is the file, `type` is its content type, and `ctSaves` counts how many times it's been rebuilt. Paths are stored lowercase, so feed URLs are case-insensitive. If you serve feeds from S3 instead, this table simply stays empty.
+
+**media** -- images pasted into posts, and in the future other binary media. One row per upload: `id` is the address the item is served at (`/media/123`), `mediabytes` is the file itself, `type` is its content type, `screenname` is who uploaded it, and `size` is the byte count. The per-upload limit is `maxMediaUploadBytes` in config.json, 2MB by default; `mediumblob` holds up to 16MB, so there's room to raise it.
 
 ## Upgrading an existing database
 
@@ -147,6 +159,20 @@ create table likes (
 	whenCreated datetime default current_timestamp,
 	primary key (screenname, itemId),
 	index itemId (itemId)
+	) character set utf8mb4 collate utf8mb4_unicode_ci;
+```
+
+The `media` table, for images in posts:
+
+```sql
+create table media (
+	id int unsigned not null auto_increment,
+	screenname varchar (255),
+	type varchar (64),
+	mediabytes mediumblob,
+	size int unsigned,
+	whenCreated datetime default current_timestamp,
+	primary key (id)
 	) character set utf8mb4 collate utf8mb4_unicode_ci;
 ```
 
