@@ -1,3 +1,9 @@
+#### 8/2/26; 12:40 PM ET by CC
+
+**Fixed a bug in feeds we generate.** We were using the wrong value from config.json to build the URL for the `<link>` element in RSS.chat-generated feeds. Fixed in server v0.6.12, on both public servers. Thanks to [iheartrss.com](https://iheartrss.com/), whose checker caught the mistake.
+
+**Updating a server you already run.** Get the new `rssnetwork.js` and `package.json` from the repo and restart. No new packages this time, so there's no `npm install` step.
+
 #### 8/1/26; 6:45 PM ET by DW
 
 **Security fix in v0.6.11 -- please update.** A user contacted us about a potential security issue. We responded quickly and with v0.6.11 the issue is removed. If you're running rssnetwork.js on a publicly visible server, please install the new version now. Thanks!

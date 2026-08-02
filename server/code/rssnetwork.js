@@ -1,4 +1,4 @@
-var myVersion = "0.6.11", myProductName = "rss.network";
+var myVersion = "0.6.12", myProductName = "rss.network";
 
 const daveappserver = require ("daveappserver");
 const rss = require ("daverss");
@@ -28,7 +28,7 @@ var config = {
 	maxFeedItems: 100,
 	
 	rssLanguage: "en-us",
-	rssDocs: "http://cyber.law.harvard.edu/rss/rss.html",
+	rssDocs: "https://cyber.law.harvard.edu/rss/rss.html",
 	rssMaxFeedItems: 100,
 	flRssCloudEnabled: true,
 	rssCloudDomain: "rpc.rsscloud.io",
@@ -1134,7 +1134,7 @@ var config = {
 	function buildFeedForUser (userRec, format="xml", callback) {
 		const headElements = getDefaultHeadElements ();
 		headElements.title = userRec.screenname + " on rss.network";
-		headElements.link = "http://" + config.myDomain + "/";
+		headElements.link = config.urlServerForClient; //8/2/26 by DW
 		headElements.description = "Posts by " + userRec.screenname + " on rss.network";
 		const feedUrl = getFeedUrl (userRec.screenname);
 		headElements.urlSelf = feedUrl; //7/7/26 by DW
@@ -1233,7 +1233,7 @@ var config = {
 	function buildFeedForEveryone (feedUrl, callback) { //6/3/26 by DW
 		const headElements = getDefaultHeadElements ();
 		headElements.title = config.myDomain + ": all posts", //6/24/26 by DW
-		headElements.link = "http://" + config.myDomain + "/";
+		headElements.link = config.urlServerForClient; //8/2/26 by DW
 		headElements.description = "Posts from all users on " + config.myDomain;
 		headElements.image = {
 			url: "https://imgs.scripting.com/2017/08/05/loveRss.png",
@@ -1258,7 +1258,7 @@ var config = {
 			});
 		}
 	function pingCloud (screenname) {
-		var urlFeed = "http://" + config.myDomain + "/feed?screenname=" + screenname;
+		var urlFeed = config.urlServerForClient + "feed?screenname=" + screenname;
 		rss.cloudPing (undefined, urlFeed, function (err) {
 			if (err) {
 				console.log ("cloudPing error: " + err);
