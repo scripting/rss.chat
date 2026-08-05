@@ -1,4 +1,4 @@
-var myVersion = "0.6.12", myProductName = "rss.network";
+var myVersion = "0.6.14", myProductName = "rss.network";
 
 const daveappserver = require ("daveappserver");
 const rss = require ("daverss");
@@ -70,6 +70,8 @@ var config = {
 	flNightlyBackup: false, //7/25/26 by CC -- #207
 	backupFolder: "data/backups/", //7/25/26 by CC -- #207
 	urlMenuOpml: "", //7/30/26 by DW
+	flWebsubEnabled: true, //8/5/26 by CC
+	urlWebsubHub: "https://rpc.rsscloud.io/websub", //8/5/26 by CC -- Andrew Shell's hub
 	};
 
 //misc stuff
@@ -1265,6 +1267,19 @@ var config = {
 				}
 			});
 		}
+	function pingWebsubHub (feedUrl) { //8/5/26 by CC
+		if (config.flWebsubEnabled) {
+			const theParams = {
+				"hub.mode": "publish",
+				"hub.url": feedUrl
+				};
+			request.post ({url: config.urlWebsubHub, form: theParams}, function (err) {
+				if (err) {
+					console.log ("pingWebsubHub error: " + err.message);
+					}
+				});
+			}
+		}
 	function updateFeedsOnS3 (userRec, callback) {
 		buildFeedForUser (userRec, "xml", function (err, xmltext, format) {
 			if (err) {
@@ -1282,6 +1297,7 @@ var config = {
 					else {
 						const feedUrl = config.rssFeedUrl + relpath;
 						rss.cloudPing (undefined, feedUrl);
+						pingWebsubHub (feedUrl); //8/5/26 by CC
 						
 						const everyoneFeedUrl = config.rssFeedUrl + config.rssFilename;
 						buildFeedForEveryone (everyoneFeedUrl, function (err, xmltext) {
@@ -1296,6 +1312,7 @@ var config = {
 										}
 									else {
 										rss.cloudPing (undefined, everyoneFeedUrl);
+										pingWebsubHub (everyoneFeedUrl); //8/5/26 by CC
 										}
 									});
 								}
@@ -2461,7 +2478,14 @@ function handleHttpRequest (theRequest) {
 							theRequest.httpReturn (404, "text/plain", err.message);
 							}
 						else {
-							theRequest.httpReturn (200, fileRec.type, fileRec.filecontents);
+							var theHeaders = undefined; //8/5/26 by CC -- WebSub is declared in a header, and subscribers are required to look there first
+							if ((config.flWebsubEnabled) && (fileRec.type === "text/xml")) {
+								const selfUrl = config.urlServerForClient + theRequest.lowerpath.substring (1); //urlServerForClient ends with a slash and lowerpath begins with one
+								theHeaders = {
+									link: "<" + config.urlWebsubHub + ">; rel=\"hub\", <" + selfUrl + ">; rel=\"self\""
+									};
+								}
+							theRequest.httpReturn (200, fileRec.type, fileRec.filecontents, theHeaders);
 							}
 						});
 					return (true);
