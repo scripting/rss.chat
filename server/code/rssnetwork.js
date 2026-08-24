@@ -475,7 +475,7 @@ var config = {
 			imageUrl:  convertString (theUser.imageUrl), //5/4/26 by DW
 			whenCreated: convertDate (theUser.whenCreated),
 			whenUpdated: convertDate (theUser.whenUpdated),
-			prefs: convertJson (theUser.prefs) //5/16/26 by DW
+			prefs: convertJson (theUser.prefs) || {} //5/16/26 by DW; 8/24/26 by CC -- a user who has never saved prefs has a NULL column, and callers read prefs.myFeedTitle unguarded
 			});
 		}
 	function convertItem (theItem) { 
