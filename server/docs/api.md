@@ -57,6 +57,8 @@ Try it: [https://rss.chat/getrecentuseritems?name=dave](https://rss.chat/getrece
 
 **`/getthread?guid=X`** -- a post and its whole subtree of replies, in one call. You can pass `id=N` instead of `guid`. The response is the post's item record with one added member: `replies`, an array of item records in the same shape, each carrying its own `replies` -- the nesting is the threading. A post with no replies omits the member, like every other empty field. You get the post you ask about and everything under it, not the conversation above it -- ask about the root and you get the whole thread. Deleted posts are filtered out, and the reply counts (`ctReplies`) on each item match what's in its `replies` array. This does in one call what walking the `source:comments` feeds does in many -- same tree, either door. (New in server v0.6.4.)
 
+**`/item?id=N`** -- the server-rendered HTML page for one post: author, date, content, and -- for replies -- a link to what it replies to, marked up as an [h-entry](https://microformats.org/wiki/h-entry). This is the page for readers (and machines) that don't run the client app, and it's the `source` URL the server presents when it sends a Webmention: a receiver that fetches it finds the reply and an exact link to its target, which is what verification needs. A deleted post answers 410, which is how receivers learn a reply they stored is gone.
+
 **`/getiteminfo?guid=X&format=rss`** -- the interop version of a single-post read, for apps that speak feed vocabulary rather than this API's. You can pass `id=N` instead of `guid`. Two formats: `rss` (the default) returns the item as it appears in the author's RSS feed, rendered as JSON -- including `source:comments` and `<source>` attribution; `feedland` returns the same item record the other read calls return. Any other format name gets an error naming the two real ones.
 
 Try it: [https://rss.chat/getiteminfo?id=204&format=rss](https://rss.chat/getiteminfo?id=204&format=rss)
@@ -115,6 +117,7 @@ The other fields, all optional:
 - `description` -- the body as HTML, if HTML is what you have.
 - `title` -- a title for the post.
 - `inReplyTo` -- the `id` of the post you're replying to: `{"markdowntext": "Same here.", "inReplyTo": 204}`. When you read a reply this field comes back named `inReplyToNum`, and the server accepts that name here too -- send whichever you have.
+- `link` -- the post's canonical page somewhere else, for posts that started life outside rss.chat -- a WordPress permalink, say. It has to be an absolute http or https URL; anything else is quietly dropped. The link is stored on the item, comes back in every read, and rides in the author's feed as the item's `<link>`. It's also what makes reply notification work: when someone replies to a post that carries a link, the server tells that page about the reply with a [Webmention](https://www.w3.org/TR/webmention/) (see `/item` below). `/updatepost` accepts it too.
 
 Errors come back as a plain sentence, with a 503 status:
 

@@ -186,3 +186,10 @@ A free-text comment for whoever reads the file. Not used by the app. The convent
 ## Example file
 
 A ready-to-edit example config, with invented values and a placeholder password, is the [config.json](../code/config.json) in the server's code folder. Copy it to your app folder as `config.json` and replace the values with your own.
+
+## Webmention notification
+
+When a reply arrives for a post whose `link` points at an external page, the server tells that page with a [Webmention](https://www.w3.org/TR/webmention/): it discovers the page's webmention endpoint and posts the reply's `/item` page as the source. Two settings control it, and neither is required:
+
+- `flWebmentionNotify` -- on by default. Set it to `false` to send no Webmentions at all.
+- `flWebmentionAllowPrivateTargets` -- off by default, and leave it off on any real server. Item links are written by whoever posts the item, so the sender refuses targets on localhost and private address ranges; this flag exists so a test rig on one machine can talk to itself.

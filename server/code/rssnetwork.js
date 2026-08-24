@@ -1379,6 +1379,190 @@ var config = {
 			});
 		}
 //rest calls
+	function cleanItemLink (link) { //8/24/26 by CC -- only an absolute http(s) URL is worth storing
+		if (typeof (link) !== "string") {
+			return (undefined);
+			}
+		try {
+			const parsed = new URL (link.trim ());
+			if ((parsed.protocol === "http:") || (parsed.protocol === "https:")) {
+				return (parsed.toString ());
+				}
+			}
+		catch (err) {
+			}
+		return (undefined);
+		}
+	function getItemPageUrl (id) { //8/24/26 by CC -- the server-rendered HTML page for one item
+		return (config.urlServerForClient + "item?id=" + id);
+		}
+	function encodeHtml (s) { //8/24/26 by CC -- for attribute values and text we render into the item page
+		return (String (s).replace (/&/g, "&amp;").replace (/</g, "&lt;").replace (/>/g, "&gt;").replace (/"/g, "&quot;"));
+		}
+	function renderItemPage (theItem, parentItem) { //8/24/26 by CC -- an h-entry for one item, real HTML for readers without the app
+		const title = (theItem.title !== undefined) ? encodeHtml (theItem.title) : (config.productNameForDisplay + ": post " + theItem.id);
+		var htmltext = "";
+		function add (s) {
+			htmltext += s + "\n";
+			}
+		add ("<!DOCTYPE html>");
+		add ("<html lang=\"en\">");
+		add ("<head>");
+		add ("<meta charset=\"utf-8\">");
+		add ("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
+		add ("<title>" + title + "</title>");
+		add ("<link rel=\"canonical\" href=\"" + encodeHtml (theItem.guid) + "\">");
+		add ("</head>");
+		add ("<body>");
+		add ("<article class=\"h-entry\">");
+		if (theItem.title !== undefined) {
+			add ("<h1 class=\"p-name\">" + encodeHtml (theItem.title) + "</h1>");
+			}
+		add ("<p class=\"h-card p-author\">");
+		if (theItem.feedLink !== undefined) {
+			add ("<a class=\"p-name u-url\" href=\"" + encodeHtml (theItem.feedLink) + "\">" + encodeHtml (theItem.author) + "</a>");
+			}
+		else {
+			add ("<span class=\"p-name\">" + encodeHtml (theItem.author) + "</span>");
+			}
+		add ("</p>");
+		if (parentItem !== undefined) {
+			const target = (parentItem.link !== undefined) ? parentItem.link : parentItem.guid;
+			add ("<p>In reply to: <a class=\"u-in-reply-to\" href=\"" + encodeHtml (target) + "\">" + encodeHtml (target) + "</a></p>");
+			}
+		add ("<div class=\"e-content\">");
+		add ((theItem.description !== undefined) ? theItem.description : ""); //stored sanitized at write time
+		add ("</div>");
+		add ("<p>");
+		add ("<a class=\"u-url u-uid\" href=\"" + encodeHtml (theItem.guid) + "\"><time class=\"dt-published\" datetime=\"" + encodeHtml (new Date (theItem.pubDate).toISOString ()) + "\">" + encodeHtml (new Date (theItem.pubDate).toUTCString ()) + "</time></a>");
+		if (theItem.link !== undefined) {
+			add ("&nbsp;&middot;&nbsp;<a class=\"u-syndication\" href=\"" + encodeHtml (theItem.link) + "\">" + encodeHtml (theItem.link) + "</a>");
+			}
+		add ("</p>");
+		add ("</article>");
+		add ("</body>");
+		add ("</html>");
+		return (htmltext);
+		}
+	function discoverWebmentionEndpoint (targetUrl, callback) { //8/24/26 by CC -- https://www.w3.org/TR/webmention/#sender-discovers-receiver-webmention-endpoint
+		fetch (targetUrl, {redirect: "follow", headers: {"user-agent": "rssChat/" + myVersion + " (webmention)"}})
+			.then (function (response) {
+				function resolveEndpoint (href) {
+					try {
+						return (new URL (href, response.url).toString ());
+						}
+					catch (err) {
+						return (undefined);
+						}
+					}
+				function relHasWebmention (rels) {
+					return (rels !== undefined) && (rels.toLowerCase ().split (/\s+/).indexOf ("webmention") !== -1);
+					}
+				const linkHeader = response.headers.get ("link");
+				if (linkHeader !== null) { //the Link header wins, per the spec
+					const parts = linkHeader.split (",");
+					for (var i = 0; i < parts.length; i++) {
+						const matchUrl = parts [i].match (/<([^>]*)>/);
+						const matchRel = parts [i].match (/rel\s*=\s*"?([^";]+)"?/i);
+						if ((matchUrl !== null) && (matchRel !== null) && relHasWebmention (matchRel [1])) {
+							callback (undefined, resolveEndpoint (matchUrl [1]));
+							return;
+							}
+						}
+					}
+				return (response.text ().then (function (htmltext) {
+					htmltext = htmltext.slice (0, 512 * 1024); //enough for any real <head>, bounded for a hostile one
+					const tags = htmltext.match (/<(?:link|a)\s[^>]*>/gi);
+					if (tags !== null) {
+						for (var i = 0; i < tags.length; i++) {
+							const matchRel = tags [i].match (/rel\s*=\s*["']?([^"'>]+)["']?/i);
+							if ((matchRel !== null) && relHasWebmention (matchRel [1])) {
+								const matchHref = tags [i].match (/href\s*=\s*["']?([^"'\s>]*)["']?/i);
+								if (matchHref !== null) {
+									callback (undefined, resolveEndpoint (matchHref [1]));
+									return;
+									}
+								}
+							}
+						}
+					callback (undefined, undefined); //no endpoint advertised -- not an error
+					}));
+				})
+			.catch (function (err) {
+				callback (err);
+				});
+		}
+	function isPrivateWebmentionTarget (targetUrl) { //8/24/26 by CC -- SSRF guard: item links are author-supplied, so don't let a reply fetch internal addresses
+		if (config.flWebmentionAllowPrivateTargets) { //local testing only
+			return (false);
+			}
+		try {
+			const hostname = new URL (targetUrl).hostname.toLowerCase ();
+			if ((hostname === "localhost") || (hostname.endsWith (".local")) || (hostname.endsWith (".internal"))) {
+				return (true);
+				}
+			const matchIpv4 = hostname.match (/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+			if (matchIpv4 !== null) {
+				const a = Number (matchIpv4 [1]), b = Number (matchIpv4 [2]);
+				if ((a === 127) || (a === 10) || (a === 0) || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)) {
+					return (true);
+					}
+				}
+			if (hostname.indexOf (":") !== -1) { //IPv6 literal -- too many private forms to allow safely
+				return (true);
+				}
+			}
+		catch (err) {
+			return (true);
+			}
+		return (false);
+		}
+	function sendWebmention (source, target) { //8/24/26 by CC
+		if (isPrivateWebmentionTarget (target)) {
+			console.log ("sendWebmention: refusing private target " + target);
+			return;
+			}
+		discoverWebmentionEndpoint (target, function (err, endpoint) {
+			if (err) {
+				console.log ("sendWebmention: discovery failed, target == " + target + ", err.message == " + err.message);
+				return;
+				}
+			if (endpoint === undefined) {
+				console.log ("sendWebmention: no endpoint at " + target);
+				return;
+				}
+			const body = "source=" + encodeURIComponent (source) + "&target=" + encodeURIComponent (target);
+			fetch (endpoint, {method: "POST", headers: {"content-type": "application/x-www-form-urlencoded", "user-agent": "rssChat/" + myVersion + " (webmention)"}, body})
+				.then (function (response) {
+					console.log ("sendWebmention: " + source + " -> " + target + ", endpoint == " + endpoint + ", status == " + response.status);
+					})
+				.catch (function (err) {
+					console.log ("sendWebmention: send failed, endpoint == " + endpoint + ", err.message == " + err.message);
+					});
+			});
+		}
+	function notifyWebmentionForItem (id) { //8/24/26 by CC -- when a reply's parent points at an external page, tell that page
+		if (config.flWebmentionNotify === false) { //on unless the operator turns it off
+			return;
+			}
+		if (id === undefined) {
+			return;
+			}
+		getItemById ("", id, function (err, theItem) {
+			if (err || (theItem === undefined) || (theItem.inReplyToNum === undefined)) {
+				return;
+				}
+			getItemById ("", theItem.inReplyToNum, function (err, parentItem) {
+				if (err || (parentItem === undefined) || (parentItem.link === undefined)) {
+					return;
+					}
+				if (parentItem.link.startsWith (config.urlServerForClient)) { //never webmention ourselves
+					return;
+					}
+				sendWebmention (getItemPageUrl (theItem.id), parentItem.link);
+				});
+			});
+		}
 	function getPermalinkUrl (theItem) { //6/20/26 by DW
 		const theGuid = config.urlServerForClient + "?id=" + theItem.id;
 		return (theGuid);
@@ -1506,6 +1690,7 @@ var config = {
 									description: sanitizeHtmltext (linkifyUrls (trimTrailingBlankLines (postRec.description))), //7/13/26 by CC -- #175; 7/20/26 -- #192; 7/23/26 -- XSS
 									markdowntext: trimTrailingBlankLines (postRec.markdowntext), //6/3/26 by DW; 7/20/26 by CC -- #192
 									inReplyTo: postRec.inReplyTo,
+									link: cleanItemLink (postRec.link), //8/24/26 by CC -- the caller's canonical page for this post, e.g. a WordPress permalink
 									feedUrl: getFeedUrl (userRec.screenname),
 									pubDate: new Date (),
 									author: userRec.screenname, //5/4/26 by DW
@@ -1525,6 +1710,7 @@ var config = {
 												}
 											});
 										updateReplyFeedsOnS3 (itemRec.inReplyTo, userRec.screenname); //7/8/26 by CC
+										notifyWebmentionForItem (itemRec.id); //8/24/26 by CC -- tell the parent's home page a reply exists
 										}
 									});
 								}
@@ -1588,6 +1774,9 @@ var config = {
 												}
 											postRec.description = sanitizeHtmltext (linkifyUrls (trimTrailingBlankLines (postRec.description))); //7/13/26 by CC -- #175; 7/20/26 -- #192; 7/23/26 -- XSS
 											postRec.markdowntext = trimTrailingBlankLines (postRec.markdowntext); //7/20/26 by CC -- #192
+											if (postRec.link !== undefined) { //8/24/26 by CC -- same validation as newPost; undefined leaves the stored link alone
+												postRec.link = cleanItemLink (postRec.link);
+												}
 											updateItem (postRec, function (err, itemRec) {
 												if (err) {
 													callback (err);
@@ -1602,6 +1791,7 @@ var config = {
 															}
 														});
 													updateReplyFeedsOnS3 (existingItemRec.inReplyToNum, userRec.screenname);
+													notifyWebmentionForItem (postRec.id); //8/24/26 by CC -- re-sending the same source and target is how webmention says "updated"
 													}
 												});
 											}
@@ -1694,6 +1884,7 @@ var config = {
 												}
 											});
 										updateReplyFeedsOnS3 (itemRec.inReplyToNum, userRec.screenname);
+										notifyWebmentionForItem (itemRec.id); //8/24/26 by CC -- the source now answers 410, which tells the receiver to remove the reply
 										}
 									}
 								});
@@ -2361,6 +2552,30 @@ function handleHttpRequest (theRequest) {
 			return (true);
 		case "/saveprefs": //5/16/26 by DW 
 			savePrefs (params.emailaddress, params.emailcode, params.jsontext, httpReturn);
+			return (true);
+		case "/item": //8/24/26 by CC -- the server-rendered HTML page for one item, an h-entry
+			if (params.id === undefined) {
+				theRequest.httpReturn (404, "text/plain", "No item id was provided.");
+				return (true);
+				}
+			getItemById ("", params.id, function (err, theItem) {
+				if (err || (theItem === undefined)) {
+					theRequest.httpReturn (404, "text/plain", "There is no item with id " + params.id + ".");
+					return;
+					}
+				if (theItem.flDeleted) {
+					theRequest.httpReturn (410, "text/plain", "The item with id " + params.id + " has been deleted.");
+					return;
+					}
+				if (theItem.inReplyToNum !== undefined) {
+					getItemById ("", theItem.inReplyToNum, function (err, parentItem) {
+						theRequest.httpReturn (200, "text/html", renderItemPage (theItem, (err || (parentItem === undefined) || parentItem.flDeleted) ? undefined : parentItem));
+						});
+					}
+				else {
+					theRequest.httpReturn (200, "text/html", renderItemPage (theItem, undefined));
+					}
+				});
 			return (true);
 		case "/getitembyguid": //6/8/26 by DW
 			if (params.guid == undefined) { //6/30/26 by DW
