@@ -1,4 +1,4 @@
-var myVersion = "0.6.14", myProductName = "rss.network";
+var myVersion = "0.6.16", myProductName = "rss.network";
 
 const daveappserver = require ("daveappserver");
 const rss = require ("daverss");
@@ -1141,6 +1141,9 @@ var config = {
 		const feedUrl = getFeedUrl (userRec.screenname);
 		headElements.urlSelf = feedUrl; //7/7/26 by DW
 		
+		if (userRec.prefs === undefined) { //10/28/26 by CC
+			userRec.prefs = new Object ();
+			}
 		if (userRec.prefs.myFeedTitle !== undefined) { //5/27/26 by DW
 			headElements.title = userRec.prefs.myFeedTitle;
 			}
@@ -1506,6 +1509,7 @@ var config = {
 									description: sanitizeHtmltext (linkifyUrls (trimTrailingBlankLines (postRec.description))), //7/13/26 by CC -- #175; 7/20/26 -- #192; 7/23/26 -- XSS
 									markdowntext: trimTrailingBlankLines (postRec.markdowntext), //6/3/26 by DW; 7/20/26 by CC -- #192
 									inReplyTo: postRec.inReplyTo,
+									link: postRec.link, //10/28/26 by CC -- #218
 									feedUrl: getFeedUrl (userRec.screenname),
 									pubDate: new Date (),
 									author: userRec.screenname, //5/4/26 by DW

@@ -1,3 +1,17 @@
+#### 10/28/26; 1:40 PM ET by CC
+
+**A post that points somewhere shows where.** Under the text of a post that has a link, after a blank line, the page's domain name, linked to the page -- the way FeedLand's river shows it. DW's design, from rss.chat post 573: the title can't be the link, because titles are optional. The line is drawn from the post's link, so it's never in the text, and it follows the link when the link changes. (Theme v0.5.341.)
+
+**Edit linkblog link...** In the editor's three-dot menu, wordland's command with wordland's words: a dialog with the post's link; change it, or clear it to remove it. It works on a new post and when you edit one you've published, any time. Why you'd want it, DW: some sites give you a link that goes through their paywall, and that's the one to use.
+
+**The text a linkblogging tool sends arrives as text.** FeedLand sends a news item's text as HTML; a bookmarklet sends what you selected. Either way the editor now strips the markup and keeps the text, so nothing that was sent can get lost or run. (DW: strip it; whether FeedLand should send HTML at all is a FeedLand question.)
+
+**A stray character in the editor, fixed at the root.** The reply wedge, and three other characters in the theme, showed up as a garbled "â" on rss.chat today. The theme file on S3 had those characters double-encoded: the build on the new Mac reads the file one way and uploads it another. Rather than wait on that, the theme is now plain ASCII, the four characters written as escapes, so no build can mangle it. The build itself is DW's to look at when he gets to it.
+
+#### 10/28/26; 11:45 AM ET by CC
+
+**rss.chat as a linkblogging tool.** The app now understands one more thing on its address: `?linkblog=true` with `title`, `description` and `link`, the three things FeedLand's Linker setting (and the wordland bookmarklet) send. If you're signed in, the editor opens with the title and text filled in and the link attached; you edit, publish, and the post's title in the timeline links to the page. If you're not signed in, nothing happens -- sign in, then share again. The address bar is cleaned up as the editor opens, so a reload doesn't start the post over; your text is kept as a draft like any other. The server needs to be at v0.6.15 to save the link; on an older server the post publishes without it. Theme v0.5.340.
+
 #### 7/31/26; 9:30 AM ET by CC
 
 **You can add your own menu to the menubar -- the Scripts menu.** Point one new config setting, `urlMenuOpml`, at an OPML file on the web, and the app builds menus from it: every top-level node in the outline becomes a menu in the menubar after Docs, nesting becomes submenus, a node whose text is a single hyphen draws a divider, and comment nodes stay invisible. Choosing a command branches on the node's type -- today a `type="link"` node opens its url in a new tab; other types get their behaviors later. The name says where this is going: it comes from Frontier and Drummer, where the menus run scripts. To change your menus, edit the outline and reload the app -- the server doesn't restart, because the file is read fresh each time the app starts up. The first one is live on rss.chat now, the DW menu, and demo.rss.chat runs DW's test menu -- [testmenu.opml](https://this.how/rsschat/testing/testmenu.opml), which is also the example to start your own from. Questions and reports go in [issue 20](https://github.com/scripting/rss.chat/issues/20). Your server needs to be at v0.6.10 to hand the setting to the client -- see the server worknotes.

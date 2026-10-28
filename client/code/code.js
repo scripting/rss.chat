@@ -671,6 +671,12 @@
 				};
 			globals.myChatUserInterface = new chatUserInterface (chatOptions);
 			globals.myChatUserInterface.applyPrefs (); //5/19/26 by DW
+			if (getBoolean (params.linkblog)) { //10/28/26 by CC -- #218: a linkblogging tool sent us a page to post about
+				if (globals.myRssNetwork.userIsSignedIn ()) { //signed out, the link is ignored, wordland's way
+					globals.myChatUserInterface.editNewLinkblogItem (params);
+					history.replaceState ({}, "", location.origin); //so a reload doesn't start the post over
+					}
+				}
 			
 			const socketOptions = {
 				urlFirehoseSocket:  appConsts.urlSocketServer, //6/24/26 by DW

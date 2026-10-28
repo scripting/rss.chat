@@ -1,3 +1,19 @@
+#### 10/28/26; 1:40 PM ET by CC
+
+**A user who never saved prefs can post.** The first post from a user whose prefs had never been saved crashed the server while building their feed. A normal user never gets there, because the app saves prefs the moment it opens; a user made with the localhost sign-in who never opened the app, or a script posting through the API as a brand-new user, did. Now the feed is built with the defaults. (Server v0.6.16.)
+
+**Editing a post's link needs nothing new on the server.** `updatepost` already stores every field it's sent, `link` included, and an empty link reads back as none; the client's new Edit linkblog link... command uses that.
+
+**Updating a server you already run.** Get the new `rssnetwork.js` and `package.json` from the repo and restart.
+
+#### 10/28/26; 11:45 AM ET by CC
+
+**A post can carry a link.** rss.chat can now be the linkblogging tool for FeedLand, or for a bookmarklet. Open the app with `?linkblog=true&title=...&description=...&link=...` on the address and the editor opens with the page's title and text filled in and the link attached. Publish, and the post carries the link: the title in the timeline points at the page, and the item in the feed has a `<link>` element pointing there, with the `<guid>` still the post's permalink. The server side is one line in `newPost` -- it copies `link` from the post record into the item, which the items table and the feed builder were already set up for. (Server v0.6.15.) Asked for by John Johnston in [rss.chat post 569](https://rss.chat/?id=569).
+
+**To use it from FeedLand:** in Settings, on the Linker tab, enter `https://rss.chat/?linkblog=true&` -- or your own server's address the same way -- and the share icon on any news item opens rss.chat with that item ready to post. Signed out, the link is ignored; sign in first, then share again.
+
+**Updating a server you already run.** Get the new `rssnetwork.js` and `package.json` from the repo and restart. No new packages.
+
 #### 8/5/26; 3:02 PM ET by CC
 
 **rss.chat feeds now support WebSub.** [Andrew Shell's rssCloud server](https://andrewshell.org/2026/07/rsscloud-server-4-0-now-supports-websub-notifications/) speaks both protocols as of its 4.0 release, over one shared list of subscribers -- so a reader that speaks WebSub can now follow an rss.chat feed in real time, the way an rssCloud reader always could. Two things make it work. Every feed we serve announces the hub in a `Link` header, which is the first place the spec tells a subscriber to look. And when a feed changes we tell the hub, right alongside the rssCloud ping we already send. It covers the per-user feeds, the everyone feed, and the subscription list at `data/subs.opml` -- WebSub works for OPML as well as RSS. (Server v0.6.14, on rss.chat and demo.rss.chat now.)

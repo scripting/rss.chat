@@ -1,7 +1,7 @@
 function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic theme (3-col), renamed from twitter 7/2/26
 			console.log ("chatUserInterface (classic)");
 
-			const themesVersion = "0.5.339"; //bump on every theme edit -- the first Return after pasting text containing a link now breaks the paragraph at the cursor, not at the link, 7/23/26 by CC
+			const themesVersion = "0.5.341"; //bump on every theme edit -- #218, round 2: the domain line under a post with a link, Edit linkblog link..., a linkblog's text arrives as text, and the theme is ASCII-only so the build's upload can't mangle it, 10/28/26 by CC
 
 			var options = {
 				whereToAppend: undefined,
@@ -73,10 +73,12 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 
 			var divSelectedThread = undefined;
 			var currentTitle = undefined;
+			var currentLink = undefined; //10/28/26 by CC -- #218: the page a linkblog post points to, sent as postRec.link
 			var replyTargetItem = undefined;
 			var editTargetItem = undefined; //5/21/26 by Claude
 			var savedTitleBeforeEdit; //5/21/26 by Claude -- snapshot of currentTitle during an edit session
 			var editOriginalTitle, editOriginalBody, editOriginalMd; //5/24/26 by Claude -- baseline for the Update-button enable-on-change test; editOriginalMd added 7/5/26 by CC for #107
+			var editOriginalLink; //10/28/26 by CC -- #218: the same baseline for the link
 			var pendingReplyMap = {}; //guid -> inReplyTo, cleared when socket delivers the item
 			var savedMessage; //overrides draft-state text when set (e.g. "PUBLISHING")
 			var flDraftChanged = false;
@@ -93,7 +95,7 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 			const divReplyParentAuthor = $('<div class="divReplyParentAuthor"></div>');
 			const divReplyParentTitle = $('<div class="divReplyParentTitle"></div>');
 			const divReplyParentText = $('<div class="divReplyParentText"></div>');
-			const divReplyParentSummary = $('<div class="divReplyParentSummary"><span class="spanReplyWedge">▸</span><span class="spanReplyWordCount"></span></div>'); //7/20/26 by CC -- #155: the collapsed stand-in for the post being replied to; the wedge is a text character, not an icon-font glyph //black right-pointing small triangle
+			const divReplyParentSummary = $('<div class="divReplyParentSummary"><span class="spanReplyWedge">\u25b8</span><span class="spanReplyWordCount"></span></div>'); //7/20/26 by CC -- #155: the collapsed stand-in for the post being replied to; the wedge is a text character, not an icon-font glyph //black right-pointing small triangle //the wedge is a small right-pointing triangle, written as an escape: the theme is ASCII-only since 10/28/26
 			const divReplyParentDivider = $('<div class="divReplyDividerLine"></div>');
 			const divReplyComposerRow = $('<div class="divReplyComposerRow"></div>');
 			const divModalToolbar = $('<div class="divModalToolbar"></div>');
@@ -384,7 +386,7 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 					clearDraft ();
 					return;
 					}
-				var theDraft = {text: theText, mode: currentEditorMode, title: currentTitle, context: "new"};
+				var theDraft = {text: theText, mode: currentEditorMode, title: currentTitle, link: currentLink, context: "new"}; //10/28/26 by CC -- #218: the link survives a reload with the draft
 				if (editTargetItem !== undefined) {
 					theDraft.context = "edit";
 					theDraft.targetGuid = editTargetItem.guid;
@@ -416,10 +418,37 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 
 			function editNewItem () {
 				currentTitle = undefined;
+				currentLink = undefined; //10/28/26 by CC -- #218
 				saveTitle ();
 				refreshComposerTitle ();
 				clearDraft ();
 				openEditWindow ();
+				}
+
+			function editNewLinkblogItem (linkblogParams) { //10/28/26 by CC -- #218: a linkblogging tool, FeedLand or a bookmarklet, opened us with a page's title, text and link
+				function stripMarkup (theString) { //the text comes in as text: markup FeedLand or a bookmarklet sent is stripped and entities are decoded (DW, 10/28/26)
+					return ($("<div></div>").html ((theString !== undefined) ? theString : "").text ());
+					}
+				var theText = stripMarkup (linkblogParams.description);
+				var theTitle = stripMarkup (linkblogParams.title);
+				if (theText.trim ().length === 0) { //nothing was selected on the page -- the page's title is the text, and the post has no separate title
+					theText = theTitle;
+					theTitle = "";
+					}
+				if (theTitle.trim ().length === 0) {
+					theTitle = undefined;
+					}
+				const theMode = appPrefs.defaultEditorMode || "wizzy";
+				if (theMode !== "markdown") { //the wizzy surface takes html, so the text is escaped for it; the markdown box takes it as it is
+					theText = $("<div></div>").text (theText).html ();
+					}
+				currentTitle = theTitle;
+				saveTitle ();
+				refreshComposerTitle ();
+				const theDraft = {text: theText, mode: theMode, title: theTitle, link: linkblogParams.link, context: "new", flOpen: true}; //the same shape as a saved draft, so a reload brings it back
+				appPrefs.savedUserDraft = theDraft;
+				prefsChanged ();
+				loadDraft ();
 				}
 
 			function getEditorText () { //7/5/26 by CC -- #107: the editor's plain text, from whichever surface is active -- for emptiness tests and the char count
@@ -672,6 +701,7 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 				inputReplyComposer.removeClass ("flUserTouched").attr ("data-placeholder", options.placeholderSignedIn);
 				textareaMarkdown.attr ("placeholder", options.placeholderSignedIn);
 				if (savedDraft !== undefined && savedDraft.text) { //7/5/26 by CC -- #107: restore per mode -- a markdown draft into the text box, a wizzy draft as html seeding the markdown document
+					currentLink = savedDraft.link; //10/28/26 by CC -- #218
 					const draftMode = savedDraft.mode || appPrefs.defaultEditorMode || "wizzy";
 					if (draftMode === "markdown") {
 						mdSourceText = savedDraft.text;
@@ -751,6 +781,8 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 				editTargetItem = item;
 				savedTitleBeforeEdit = currentTitle;
 				currentTitle = item.title;
+				currentLink = item.link; //10/28/26 by CC -- #218: the link comes along, so Edit linkblog link... can change it any time (DW)
+				editOriginalLink = item.link;
 				refreshComposerTitle ();
 
 				const myScreenname = globals.myRssNetwork.getScreenname () || "?";
@@ -805,6 +837,7 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 					description: htmlText,
 					markdowntext: markdownText
 					};
+				postRec.link = (currentLink !== undefined) ? currentLink : ""; //10/28/26 by CC -- #218: always sent on an update; empty means no link, so clearing it in the dialog clears it on the post
 				if (currentTitle !== undefined) {
 					postRec.title = currentTitle;
 					}
@@ -831,6 +864,7 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 					else {
 						speakerBeep (); //5/21/26 by Claude
 						editTargetItem.title = postRec.title;
+						editTargetItem.link = (postRec.link.length > 0) ? postRec.link : undefined; //10/28/26 by CC -- #218: the domain line follows the edited link right away
 						if ((data !== undefined) && (data.description !== undefined)) { //7/13/26 by CC -- #175: the server linkifies bare URLs on save, so the repaint uses what it actually saved, not the editor's local copy
 							editTargetItem.description = data.description;
 							}
@@ -899,6 +933,15 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 				viewHome ();
 				}
 
+			function itemHasLink (item) { //10/28/26 by CC -- #218
+				return ((item.link !== undefined) && (item.link !== null) && (item.link.length > 0));
+				}
+			function getDomainLine (theLink) { //10/28/26 by CC -- #218: under a post that points somewhere, the page's domain name linked to the page, after a blank line -- DW's design, FeedLand's river does the same from the feed's link element
+				const divDomainLine = $('<div class="divTweetLinkDomain"></div>');
+				const aDomain = $('<a></a>').attr ("href", theLink).attr ("target", "_blank").attr ("rel", "noopener noreferrer").text (getDomainFromUrl (theLink));
+				divDomainLine.append (aDomain);
+				return (divDomainLine);
+				}
 			function fillTitleDiv (divEl, theTitle, theLink, theGuid) {
 				divEl.empty ();
 				if (theTitle === undefined || theTitle.length === 0) {
@@ -1139,7 +1182,7 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 				if (item.screenname !== undefined) { //7/1/26 by CC -- #113: the @handle no longer sits on the top line; it moves into the name's hover, followed by the feed description when there is one
 					var toolTipText = "@" + item.screenname;
 					if ((item.feedDescription !== undefined) && (item.feedDescription.length > 0)) {
-						toolTipText += " — " + item.feedDescription; //em dash between the handle and the description
+						toolTipText += " \u2014 " + item.feedDescription; //em dash between the handle and the description
 						}
 					addToolTip (spanAuthor, toolTipText, "bottom");
 					}
@@ -1202,10 +1245,10 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 				var flCanExpand = false;
 				function setMoreLabel () {
 					if (flExpanded === true) {
-						divMoreButton.html ("LESS ↑"); //upwards arrow
+						divMoreButton.html ("LESS \u2191"); //upwards arrow
 						}
 					else {
-						divMoreButton.html ("MORE ↓"); //downwards arrow
+						divMoreButton.html ("MORE \u2193"); //downwards arrow
 						}
 					}
 				function toggleExpand () {
@@ -1413,6 +1456,9 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 					divTweetBody.append (divTweetTitle);
 					}
 				divTweetBody.append (divTweetText);
+				if (itemHasLink (item)) { //10/28/26 by CC -- #218
+					divTweetBody.append (getDomainLine (item.link));
+					}
 				divTweetBody.append (divMoreButton);
 				divTweetBody.append (divTweetActions);
 				divTweet.append (divAvatar);
@@ -1463,6 +1509,7 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 					author: appPrefs.myFeedTitle || myScreenname,
 					screenname: myScreenname,
 					title: theTitle,
+					link: data.link, //10/28/26 by CC -- #218
 					description: htmlText,
 					pubDate: data.pubDate || new Date ().toISOString (),
 					imageUrl: appPrefs.myAvatarImageUrl,
@@ -1492,6 +1539,10 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 					refreshComposerTitle ();
 					saveTitle ();
 					}
+				if (currentLink !== undefined) { //10/28/26 by CC -- #218: a linkblog post carries the page it points to
+					postRec.link = currentLink;
+					currentLink = undefined;
+					}
 				globals.myRssNetwork.newPost (postRec, function (err, data) {
 					if (err) {
 						console.log ("sendMessage: err.message == " + err.message);
@@ -1513,6 +1564,10 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 					currentTitle = undefined;
 					refreshComposerTitle ();
 					saveTitle ();
+					}
+				if (currentLink !== undefined) { //10/28/26 by CC -- #218: a linkblog post carries the page it points to
+					postRec.link = currentLink;
+					currentLink = undefined;
 					}
 				savedMessage = "PUBLISHING";
 				updateModalStatus ();
@@ -2208,7 +2263,8 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 					flBodyChanged = (inputReplyComposer.html () !== editOriginalBody);
 					}
 				const flTitleChanged = currentTitle !== editOriginalTitle;
-				const flDisabled = flBodyEmpty || (!flBodyChanged && !flTitleChanged) || (ctPendingImageUploads > 0); //7/22/26 by CC -- #188: no publishing while an image is still uploading
+				const flLinkChanged = currentLink !== editOriginalLink; //10/28/26 by CC -- #218
+				const flDisabled = flBodyEmpty || (!flBodyChanged && !flTitleChanged && !flLinkChanged) || (ctPendingImageUploads > 0); //7/22/26 by CC -- #188: no publishing while an image is still uploading
 				buttonReplyPost.prop ("disabled", flDisabled);
 				}
 			function setTitleDialog () {
@@ -2228,6 +2284,25 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 					refreshComposerTitle ();
 					saveTitle ();
 					refreshUpdateDisabled (); //5/24/26 by Claude
+					});
+				}
+			function editLinkblogLink () { //10/28/26 by CC -- #218: wordland's Edit linkblog link..., same words, same behavior -- the link the post points to; empty removes it
+				const theDefault = (currentLink !== undefined) ? currentLink : "";
+				askDialog ("Linkblog link for this post:", theDefault, "", function (response, flCancelled) {
+					if (flCancelled) {
+						return;
+						}
+					const newLink = response.trim ();
+					if (newLink.length === 0) {
+						currentLink = undefined;
+						}
+					else {
+						currentLink = newLink;
+						}
+					if (editTargetItem !== undefined) {
+						refreshUpdateDisabled ();
+						}
+					scheduleDraftSave (); //the draft carries the link
 					});
 				}
 			function startTitleEdit () { //5/30/26 by Claude -- edit the title in place instead of in a dialog
@@ -2692,6 +2767,10 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 
 				const divTweetText = entry.divThread.find (".divTweetText").first ();
 				divTweetText.html (chatItem.description);
+				divTweetText.nextAll (".divTweetLinkDomain").first ().remove (); //10/28/26 by CC -- #218: the domain line follows the link, redrawn on every update
+				if (itemHasLink (chatItem)) {
+					divTweetText.after (getDomainLine (chatItem.link));
+					}
 				entry.refreshAfterUpdate (); //7/5/26 by CC -- #153: was expandFully; keep the reader's collapsed state so the icons don't jump when a like or edit updates the post
 				const divTweetTitle = entry.divThread.find (".divTweetTitle").first ();
 				const flHasTitle = (chatItem.title !== undefined && chatItem.title.length > 0);
@@ -2830,6 +2909,7 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 			this.applyPrefs = applyPrefs;
 			this.openEditWindow = openEditWindow;
 			this.editNewItem = editNewItem;
+			this.editNewLinkblogItem = editNewLinkblogItem; //10/28/26 by CC -- #218
 			this.toggleLike = function (theItem) { //6/25/26 by CC -- #75: the shell's like-icon click calls this; flip the heart now, tell the server, revert on error. 7/4/26 by CC -- #135: works in every view now -- repaint the timeline copy AND the copy the user clicked (story, profile, hoist), and remember the state on the item so a repeat click computes right
 				if (theItem === undefined || theItem.id === undefined) {
 					return;
@@ -2880,6 +2960,7 @@ function chatUserInterface (userOptions) { //5/2/26 by Claude + DW -- classic th
 				return (divReplyOverlay.is (":visible"));
 				};
 			this.editTitle = setTitleDialog; //6/10/26 by Claude -- the app's set-title menu command
+			this.editLinkblogLink = editLinkblogLink; //10/28/26 by CC -- #218: the app's Edit linkblog link... menu command
 			this.getEditorData = getEditorData; //6/10/26 by Claude -- the app's view-data menu command
 
 			this.viewStory = function (guid) { //6/20/26 by Claude -- show a post as a story in place; remember where the timeline was scrolled so Back can restore it

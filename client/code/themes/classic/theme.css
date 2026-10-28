@@ -689,6 +689,12 @@
 				cursor: pointer;
 				margin-bottom: 10px;
 				}
+			.divChat .divTweetLinkDomain { /*10/28/26 by CC -- #218: the domain line under a post that points somewhere; the text's bottom margin is the blank line above it*/
+				font-family: var(--font, "Ubuntu", -apple-system, sans-serif);
+				font-size: var(--text-size, 16px);
+				line-height: var(--line-spacing, 1.5);
+				margin-bottom: 10px;
+				}
 			/* 6/27/26 by CC -- focused-item (story) view: a normal timeline item shown full-length. Same font-size/line-spacing as the timeline now (DW 6/27); only the truncation is lifted so the whole post shows. The story concept may re-emerge with its own sizing down the road. */
 			.divChat.storyPage .divStory .divTweetText {
 				max-height: none;

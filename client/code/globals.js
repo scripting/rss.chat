@@ -163,6 +163,15 @@ const editorMenu = [ //6/10/26 by DW
 			globals.myChatUserInterface.editTitle ();
 			}
 		},
+	{ //edit linkblog link -- 10/28/26 by CC -- #218
+		name: "editLinkblogLink",
+		display: "Edit linkblog link...",
+		enabled: true, 
+		tooltip: "Edit the link this post points to.", 
+		click: function (ev) {
+			globals.myChatUserInterface.editLinkblogLink ();
+			}
+		},
 	{ //view data
 		name: "viewData",
 		display: "View data...",
