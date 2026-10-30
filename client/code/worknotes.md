@@ -1,3 +1,18 @@
+#### 10/30/26; 12:15 PM ET by CC
+
+**How to make rss.chat the linkblogging tool for FeedLand.**
+
+A checklist. Nothing to install and nothing to update; the app loads fresh every time you open it.
+
+1. Sign in to rss.chat in your browser. If you're signed out when a link arrives, rss.chat ignores it.
+2. In FeedLand, open Settings and click the Linker tab.
+3. In the URL field, enter `https://rss.chat/?linkblog=true&` and click OK. If you run your own rss.chat server, use its address the same way.
+4. Find a news item in FeedLand and click its share icon. rss.chat opens with the item's title and text in the editor and the link attached.
+5. Edit if you like, then publish. The post's title in the timeline points at the page, the page's domain shows under the post, and the item in your feed carries the link.
+6. To change the link on a post, new or published, choose Edit linkblog link... from the editor's three-dot menu.
+
+For a bookmarklet or any other tool, the address is the same: `?linkblog=true` plus `link`, `title` and `description`, each URL-encoded. Any of the three can be left out; if there is no description, the title becomes the text of the post.
+
 #### 10/28/26; 1:40 PM ET by CC
 
 **A post that points somewhere shows where.** Under the text of a post that has a link, after a blank line, the page's domain name, linked to the page -- the way FeedLand's river shows it. DW's design, from rss.chat post 573: the title can't be the link, because titles are optional. The line is drawn from the post's link, so it's never in the text, and it follows the link when the link changes. (Theme v0.5.341.)
