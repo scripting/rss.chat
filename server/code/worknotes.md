@@ -1,3 +1,15 @@
+#### 10/31/26; 11:36 AM ET by CC
+
+**A reply now says which feed it's replying into.** The `source:inReplyTo` element in a reply's feed item has two new optional attributes. `feedUrl` is the address of the feed the original post lives in, so a reader that sees a reply can fetch that feed, show the original post, and offer to subscribe to it. `feedTitle` is what that feed is called, so a reader can label the reply the way rss.chat does, "Replying to Dave Winer", without fetching anything. The element's value is unchanged, still the permalink of the post being replied to, so readers that already handle it keep working. Asked for by Caleb Hailey and Tim Jansen in [issue 15](https://github.com/scripting/rss.chat/issues/15). (Server v0.6.17.)
+
+**When there's no title, there's no attribute.** `feedTitle` appears only when the author of the original post has set a feed title in Settings. When they haven't, the attribute is left out rather than a name being made up, and that's how the feed tells a reader there isn't one. `feedUrl` is always there.
+
+```xml
+<source:inReplyTo feedUrl="https://rss.chat/users/JohnJohnston/rss.xml" feedTitle="John Johnston">https://rss.chat/?id=574</source:inReplyTo>
+```
+
+**Updating a server you already run.** This one needs two steps: get the new `rssnetwork.js` and `package.json` from the repo, run `npm update` in the server's folder, then restart. The attributes are written by daverss 0.6.21, and npm update is what brings it in.
+
 #### 10/28/26; 1:40 PM ET by CC
 
 **A user who never saved prefs can post.** The first post from a user whose prefs had never been saved crashed the server while building their feed. A normal user never gets there, because the app saves prefs the moment it opens; a user made with the localhost sign-in who never opened the app, or a script posting through the API as a brand-new user, did. Now the feed is built with the defaults. (Server v0.6.16.)
